@@ -4,20 +4,18 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var log = require('./moduls/logger')(module);
 
+var queue = require('./moduls/queue');
+var validate = require('./moduls/validator');
+
 var app = express();
-var root = '~/.coderunner';
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-//var request = {language: java,
-//              code: "run(){}",
-//              testCases: "["stdIn 1", "stdIn 2", "stdIn 3};
-
-
 var msg = {
     200: 'OK',
     400: 'Bad Request',
+    422: 'Unprocessable Entity',
     500: 'Internal server error'
 };
 
@@ -30,73 +28,33 @@ app.post('/isolatedTest', function (req, res) {
     var lang = req.body.language;
     var code = req.body.code;
     var testCases = req.body.testCases;
-    if (lang && code && testCases)
-        validateData(lang, code, testCases);
+    if (lang && code && testCases) {
+        var dataInspection = validate({code: code, language: lang});
+        if (!dataInspection.validity) {
+            sendResponse(res, 200, 422, dataInspection.log)
+        }
+    }
     else
         sendErrorRes(res, '400');
-
     var id = new Date().getTime().toString();
-    enqueue(lang, code, testCases, id);
-
-
-});
-
-app.get('analyseTest/:sessionID', function (req, res) {
-    var id = req.query.sessionID;
-    var responseResult = {};
-    var limitBuffer = 10;
-    var outputPath = path.join(root, 'output');
-    var filePath = path.join(outputPath, id);
-    fs.exists(outputPath, function (exists) {
+    queue.enqueue({id: {code: code, language: leng, testCases: testCases}}, function (err, data) {
         if (err)
-           throw err;
-        else {
-            fs.stat(filePath, function(err, stats) {
-                if (err || !stats.isFile()) {
-                    throw err;
-                } else {
-                    var file = new fs.ReadStream(filePath, {encoding: 'utf-8'});
-                    file.on('readable', function() {
-                        if (limitBuffer)
-                            var data = file.read();
-                        else
-                            file.destroy();
-                        limitBuffer--;
-                    });
-                    file.on('end', function() {
-                        parseFileToJson(file);
-                    });
-                    file.on('err', function(err) {
-                        throw err;
-                    });
-                }
-            });
-        }
+            throw err;
+        sendResponse(res, 200, 200, data);
     });
+
+
 });
 
-function parseFileToJson(file) {
-    var responseObj = {};
-    /*{
-     compiler errors: "",
-     stdout : [ “testcase1 otp”, “testcase2 otp” ],
-     stderr : [ “testcase1 err”, “testcase2 err” ],
-     timestamps : [ “testcase1 duration”, “testcase2 duration” ]
-     }*/
-    return responseObj;
-};
+
+function sendResponse (res, statusCode, code, data) {
+    res.status(statusCode);
+    res.json({code : code, response: data});
+    res.end;
+}
 
 
 function validateKey(key) {
-
-};
-
-function validateData(lang, code, testCases) {
-
-};
-
-function enqueue(lang, code, testCases, sessionId) {
-
 };
 
 
