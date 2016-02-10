@@ -71,11 +71,11 @@ CodeRunner service
 Данный модуль получает в качестве входных параметров объект, имеющий следующую структуру:
 ```
 {
-sessionId: {
-code: “”,
-language: “”,
-testCases: [ “stdIn 1”, “stdIn 2” ]
-}
+  sessionId: {
+  code: “”,
+  language: “”,
+  testCases: [ “stdIn 1”, “stdIn 2” ]
+  }
 }
 ```
 и колл-бек функцию callback.
@@ -88,34 +88,35 @@ testCases: [ “stdIn 1”, “stdIn 2” ]
 
 Далее менеджер вызывает команду загрузки докер-контейнера и выполнения стартового bash-скрипта примерно такого вида:
 
+```
 var cp = require('child_process');
 cp.exec('docker run -d --net none -v имяОбщейПапки: имяОбщейПапки ' + имяКонтейнера + 'start' + sessionId, callbackFunction);
-
+```
 Дополнительно требуется найти и прописать параметры, регулирующие количествопамяти для процесса, степень макс. загрузки процессора и т.д.
 Колл-бек функция, вызываемая при завершении, дожна проверить код завершения работы докера.
 Если процесс докера завершился крашем – сформировать объект ответа с сообщением об ошибке.
 ```
- {
-dockerError: “docker crashed”,	
-compiler errors: "", 
-stdout : [ “testcase1 otp”, “testcase2 otp” ],
-stderr : [ “testcase1 err”, “testcase2 err” ],
-timestamps : [ “testcase1 duration”, “testcase2 duration” ]
+{
+   dockerError: “docker crashed”,	
+   compiler errors: "", 
+   stdout : [ “testcase1 otp”, “testcase2 otp” ],
+   stderr : [ “testcase1 err”, “testcase2 err” ],
+   timestamps : [ “testcase1 duration”, “testcase2 duration” ]
  }
-
+```
 Иначе запустить анализатор логов и сформировать в памяти объект ответа c результатми исполнения тесткейсов. Сразу после старта процесса с докером требуется запустить отложенную на № секунд (из конф-файла) функцию, которая должна проверить, завершился ли уже процесс докера. Если да – то ок, пишем в лог и выходим, если нет – отдаём команду kill процессу докера и тоже пишем в лог. Объект ответа в этом случае содержит информацию только о том, что процесс превысил допустимое время выполнения: 
 ```
  {
- dockerError: “docker killed”
- compiler errors: "",
- stdout : [ “testcase1 otp”, “testcase2 otp” ],
- stderr : [ “testcase1 err”, “testcase2 err” ],
- timestamps: [ “testcase1 duration”, “testcase2 duration” ]
+   dockerError: “docker killed”
+   compiler errors: "",
+   stdout : [ “testcase1 otp”, “testcase2 otp” ],
+   stderr : [ “testcase1 err”, “testcase2 err” ],
+   timestamps: [ “testcase1 duration”, “testcase2 duration” ]
  }
-
+```
 Перед завершением работы менеджера - удалить временные каталоги и файлы по следующим путям: общая докер-папка / sessionId / input общая докер-папка / sessionId /output
 По завершении вызываем колл-бек функцию callback, полученную во вxодных параметрах, и передаём ей sessionId завершённой задачи и сформированный объект ответа:
-callback(sessionId, объект_ответа);
+```callback(sessionId, объект_ответа);```
 
 
 ###Докер-контейнер
