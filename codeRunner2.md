@@ -102,8 +102,15 @@ CodeRunner service
 ```
 и передает этот объект серверу выше. 
 
-Объект очереди создаётся через require('codeRunnerQueue').create();
-Добавление задачи в очередь - метод push(taskObj,callbackFunc);
+Объект очереди создаётся следующим образом:
+```
+var RunnerQueue=require('RunnerQueue');
+var runnerQueue=new RunnerQueue();
+```
+Добавление задачи в очередь - метод push:
+```
+runnerQueue.push(taskObj,callbackFunc);
+```
 
 ###Менеджер запуска докер-контейнеров.
 
