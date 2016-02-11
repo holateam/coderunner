@@ -68,11 +68,10 @@ CodeRunner service
 Очередь принимает на вход объект задачи, содержащий следующие свойства:
 ```
 {
-	sessionId: {
-				code: “”,
-				language: “”,
-				testCases: [ “stdIn 1”, “stdIn 2” ]
-				}
+	sessionId: “”,
+	code: “”,
+	language: “”,
+	testCases: [ “stdIn 1”, “stdIn 2” ]
 }
 ```
 и функцию [, callback].
@@ -116,11 +115,10 @@ runnerQueue.push(taskObj,callbackFunc);
 Данный модуль получает в качестве входных параметров объект, имеющий следующую структуру:
 ```
 {
-  sessionId: {
-  code: “”,
-  language: “”,
-  testCases: [ “stdIn 1”, “stdIn 2” ]
-  }
+	sessionId: “”,
+	code: “”,
+	language: “”,
+	testCases: [ “stdIn 1”, “stdIn 2” ]
 }
 ```
 и колл-бек функцию callback.
