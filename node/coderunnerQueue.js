@@ -1,5 +1,5 @@
 /**
- * Created by Uzer on 11.02.2016.
+ * Created by Vladimir on 11.02.2016.
  */
 module.exports = RunnerQueue;
 
@@ -8,12 +8,12 @@ function RunnerQueue() {
     this.arrWorkingTasks = [];
     this.workingTasksCounter = 0;
 
-    var DockerRunner = require('DockerRunner');
     //var DockerRunner = require('./testExec3');
+    var DockerRunner = require('./DockerRunner');
     this.dockerRunner = new DockerRunner();
 
-    //var config = require('Config');
-    this.maxWorkingTaskNumber = 10; // config.MaxWorkingTaskNumber
+    var config = require('./config.json');
+    this.maxWorkingTaskNumber = config.MaxWorkingTaskNumber;
 }
 
 RunnerQueue.prototype.push = function (taskObj, callbackFunction) {
