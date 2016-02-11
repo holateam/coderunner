@@ -81,11 +81,10 @@ CodeRunner service
 Если лимит не превышен - очередь передает менеджеру запуска контейнеров полученный объект:
 ```
 {
-	sessionId: {
-				code: “”,
-				language: “”,
-				testCases: [ “stdIn 1”, “stdIn 2” ]
-				}
+	sessionId: “”,
+	code: “”,
+	language: “”,
+	testCases: [ “stdIn 1”, “stdIn 2” ]
 }
 ```
 вместе со своей функицией [, callback].
