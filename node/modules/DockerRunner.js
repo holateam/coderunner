@@ -42,7 +42,7 @@ DockerRunner.prototype.run = function(options) {
     var sessionDir      = docketSharedDir + "/" + opt.sessionId;
     var dockerDir       = conf.dockerDir + "/" + lang;
     var containerPath   = dockerDir + "/container";
-    var params          = '-d --net none';
+    var params          = '-d --net none -v /'+opt.sessionId+' '+sessionDir;
 
     var errHandler = function (err) {
         if (err) throw err;
@@ -84,7 +84,7 @@ DockerRunner.prototype.run = function(options) {
         caseIdx : 0,
         caseLimit : opt.testCases.length
     }
-    var params = '-d --net none -a stdin';
+    var params = '-d --net none -a stdin -v /'+opt.sessionId+' '+sessionDir;
     var command = 'docker run ' + params + ' ' + containerPath + ' start ' + opt.sessionId;
     function runNextCase() {
         // prepare and execute testcases
