@@ -112,3 +112,4 @@ DockerRunner.prototype.run = function(options) {
 };
 
 exports.DockerRunner = DockerRunner;
+module.exports = DockerRunner;
