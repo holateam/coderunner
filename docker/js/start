@@ -1,0 +1,9 @@
+cd /"$1"/input
+if [ -f code ];
+then
+    mv code code.js
+    node code.js
+else
+    echo "No source file" > logCompile
+fi
+
