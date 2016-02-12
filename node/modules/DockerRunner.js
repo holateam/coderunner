@@ -4,7 +4,7 @@ var cp          = require('child_process');
 
 function DockerRunner(){} 
 
-DockerRunner.prototype.run = function(options) {
+DockerRunner.prototype.run = function(options, cb) {
 
     if (!options)
         throw new ArgEx('you must pass options object as argument');
@@ -14,7 +14,7 @@ DockerRunner.prototype.run = function(options) {
         code        : options.code      || null,
         language    : options.language  || null,
         testCases   : options.testCases || null,
-        callback    : options.callback  || null
+        callback    : cb || null
     };
 
     // validate parameters
@@ -40,16 +40,19 @@ DockerRunner.prototype.run = function(options) {
     // preparing variables
     var docketSharedDir = conf.docketSharedDir;
     var sessionDir      = docketSharedDir + "/" + opt.sessionId;
-    var dockerDir       = conf.dockerDir + "/" + lang;
-    var containerPath   = dockerDir + "/container";
-    var params          = '-d --net none -v /'+opt.sessionId+' '+sessionDir;
+    var dockerDir       = ""; //conf.dockerDir + "/" + lang;
+    var containerPath   = "container"; //dockerDir + "/container";
+    var params          = '-d --net none -v /'+docketSharedDir+':/opt'; //opt.sessionId+':'+sessionDir;
 
     var errHandler = function (err) {
         if (err) throw err;
     }
 
     // preparing shared files
-    cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input & echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", errHandler);
+    //cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input & echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", errHandler);
+    cp.exec("mkdir " + sessionDir);
+    cp.exec("mkdir " + sessionDir + "/input");
+    cp.exec("echo -e '"+opt.code+"' >> " + sessionDir+"/input/code");
     // creating empty response object
     var response = {
         dockerError     : null,   
