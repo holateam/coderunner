@@ -352,9 +352,9 @@ dockerRunner.run(taskObj,callbackFunc);
 Результат компиляции должен логироваться в файле logCompile.
 Результат выполнения и ошибки поступают в стандартные потоки ввода-вывода и в поток ошибок соответственно.
 
--### Примеры запросов:
- -Тип - POST , header content-type - application-json
- -Тело:
+### Примеры запросов:
+Тип - POST , header content-type - application-json .
+Тело:
  -```
  -{
  -"code": "#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}",
