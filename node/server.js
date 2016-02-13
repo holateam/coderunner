@@ -53,11 +53,11 @@ function sendResponse (res, statusCode, code, data) {
 
 
 function sendErrorRes(res, code) {
-    log.error(msg[code]);
+    log.error(msg[code] || 'Unknown message for code # ' + code);
     res.status(code).json({'error': {'code': code, "message": msg[code]}});
     res.end();
 }
-app.use(function (err, req, res) {
+app.use(function (req, res) {
     sendErrorRes(res, 500);
 });
 
