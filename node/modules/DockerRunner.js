@@ -38,22 +38,22 @@ DockerRunner.prototype.run = function(options, cb) {
         throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs));
 
     // preparing variables
-    var docketSharedDir = "";//conf.dockerSharedDir;
-    var sessionDir      = docketSharedDir + "/" + opt.sessionId;
+    var dockerSharedDir = "/shared";//conf.dockerSharedDir;
+    var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
     //var dockerDir       = ""; //conf.dockerDir + "/" + lang;
     var containerPath   = "cpp_img"; //dockerDir + "/container";
-    var params          = '-a stdin -a stdout -a stderr --net none -v $(pwd)'+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
+    var params          = '-a stdin -a stdout -a stderr --net none -v $(pwd)'+dockerSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
 
     // preparing shared files
 
     console.log("try to make dirs",sessionDir);
-    cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input", function(err) {
+    cp.exec("mkdir $(pwd)"+dockerSharedDir+" $(pwd)"+sessionDir+" $(pwd)"+sessionDir+"/input", function(err) {
         if (err) {
             console.log("err!");
             console.log(err);
         }
         console.log("writing code file");
-        cp.exec("echo '"+opt.code+"' >> " + sessionDir+"/input/code", function (err) {
+        cp.exec("echo '"+opt.code+"' >> $(pwd)" + sessionDir+"/input/code", function (err) {
             if (err){
                 console.log("Error writing code file");
                 return cb(e);
@@ -111,7 +111,7 @@ DockerRunner.prototype.run = function(options, cb) {
             caseLimit : opt.testCases.length
         };
 
-        var params = '-a stdin -a stdout -a stderr --net none -i -v '+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
+        var params = '-a stdin -a stdout -a stderr --net none -i -v '+dockerSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
 
         function runNextCase() {
