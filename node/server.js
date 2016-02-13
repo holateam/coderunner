@@ -1,9 +1,11 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var log = require('./moduls/logger')(module);
+var log = require('./modules/logger')(module);
 
-//var queue = require('./moduls/queue');
-var validate = require('./moduls/validator');
+var Queue = require('./modules/coderunnerQueue');
+var queue = new Queue();
+
+var validate = require('./modules/validator');
 
 var app = express();
 
@@ -34,11 +36,11 @@ app.post('/isolatedTest', function (req, res) {
     else
         sendErrorRes(res, '400');
     var id = new Date().getTime().toString();
-   /* queue.enqueue({sessionId: id, code: code, language: leng, testCases: testCases}, function (err, data) {
+    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (err, data) {
         if (err)
             throw err;
         sendResponse(res, 200, 200, data);
-    });*/
+    });
 
 
 });

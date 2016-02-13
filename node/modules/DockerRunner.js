@@ -38,11 +38,11 @@ DockerRunner.prototype.run = function(options, cb) {
         throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs));
 
     // preparing variables
-    var docketSharedDir = conf.docketSharedDir;
+    var docketSharedDir = '/home/vladimir/Desktop'; //conf.docketSharedDir;
     var sessionDir      = docketSharedDir + "/" + opt.sessionId;
     var dockerDir       = ""; //conf.dockerDir + "/" + lang;
-    var containerPath   = "container"; //dockerDir + "/container";
-    var params          = '-d --net none -v /'+docketSharedDir+':/opt'; //opt.sessionId+':'+sessionDir;
+    var containerPath   = "cpp_img"; //dockerDir + "/container";
+    var params          = '-a stdin -a stdout -a stderr --net none -v '+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
 
     var errHandler = function (err) {
         if (err) throw err;
@@ -52,10 +52,10 @@ DockerRunner.prototype.run = function(options, cb) {
     //cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input & echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", errHandler);
     cp.exec("mkdir " + sessionDir);
     cp.exec("mkdir " + sessionDir + "/input");
-    cp.exec("echo -e '"+opt.code+"' >> " + sessionDir+"/input/code");
+    cp.exec("echo '"+opt.code+"' >> " + sessionDir+"/input/code");
     // creating empty response object
     var response = {
-        dockerError     : null,   
+        dockerError     : null,
         compilerErrors  : null, 
         stdout          : [ ],
         stderr          : [ ],
@@ -69,13 +69,19 @@ DockerRunner.prototype.run = function(options, cb) {
     }
 
     // preparing compilation command and callback
-    var compile_command = 'docker run ' + params + ' ' + containerPath + ' start ' + opt.sessionId;
+    var compile_command = 'docker run ' + params + ' ' + containerPath + ' start '; // + opt.sessionId;
     var compile_callback = function(err, stdout, stderr) {
-        if (err)
+        console.log("returned from docker: ",stdout,stderr,err);
+        if (err){
+            console.log("err: ",err);
             throw err;
+        }
         if (stderr) {
+            console.log("stderr: ",stderr);
             response.compilerErrors = stderr;
             finalize();
+        } else {
+            console.log("result: ",stdout);
         }
     }
     // execute compilation process
@@ -83,12 +89,14 @@ DockerRunner.prototype.run = function(options, cb) {
 
     // single testcase execution function
     // used for sync beheviour
+/*
     var caseData = {
         caseIdx : 0,
         caseLimit : opt.testCases.length
-    }
-    var params = '-d --net none -a stdin -v /'+opt.sessionId+' '+sessionDir;
-    var command = 'docker run ' + params + ' ' + containerPath + ' start ' + opt.sessionId;
+    };
+
+    var params = ' --net none -a stdin -v '+docketSharedDir+'/'+opt.sessionId+':/opt/data';
+    var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
     function runNextCase() {
         // prepare and execute testcases
         var testcase = opt.testCases[caseData.caseIdx++];
@@ -111,7 +119,7 @@ DockerRunner.prototype.run = function(options, cb) {
     }
 
     runNextCase();
-
+*/
 };
 
 exports.DockerRunner = DockerRunner;
