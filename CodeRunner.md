@@ -347,8 +347,7 @@ dockerRunner.run(taskObj,callbackFunc);
 Результат выполнения и ошибки поступают в стандартные потоки ввода-вывода и в поток ошибок соответственно.
 
 ### Примеры запросов:
-Тип - POST
-Header contenttype - application-json
+Тип - POST , header content-type - application-json
 Тело:
 ```
 {
