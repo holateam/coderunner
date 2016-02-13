@@ -357,3 +357,7 @@ dockerRunner.run(taskObj,callbackFunc);
 }
 
 ```
+Не забываем слать запросы на правильный порт и путь:
+```
+http://localhost:3351/isolatedTest
+```
