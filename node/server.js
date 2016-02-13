@@ -1,10 +1,12 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var log = require('./modules/logger')(module);
-
+var env = require('node-env-file');
 var Queue = require('./modules/coderunnerQueue');
 var queue = new Queue();
 var validate = require('./modules/validator');
+
+env(__dirname + '/.env');
 
 var app = express();
 
@@ -61,6 +63,6 @@ app.use(function (req, res) {
     sendErrorRes(res, 500);
 });
 
-var server = app.listen(3351, function () {
-    console.log('Running on http://localhost:3351');
+var server = app.listen(process.env.SERVER_PORT, function () {
+    console.log('Running on http://localhost:' + process.env.SERVER_PORT);
 });

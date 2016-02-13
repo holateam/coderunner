@@ -2,8 +2,9 @@
   "name": "coderunner",
   "version": "0.0.1",
   "dependencies": {
-    "express": "4.10.2",
     "body-parser": "1.14.2",
+    "express": "4.10.2",
+    "node-env-file": "^0.1.8",
     "winston": "2.1.1"
   }
 }
