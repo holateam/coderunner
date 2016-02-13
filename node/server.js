@@ -4,7 +4,6 @@ var log = require('./modules/logger')(module);
 
 var Queue = require('./modules/coderunnerQueue');
 var queue = new Queue();
-
 var validate = require('./modules/validator');
 
 var app = express();
@@ -19,14 +18,13 @@ var msg = {
     500: 'Internal server error'
 };
 
-
 app.post('/isolatedTest', function (req, res) {
     // /isolatedTest?key=securityCode
-    var securityCode = req.query.key;
+    //var securityCode = req.query.key;
     //validateKey(securityCode);
-    var lang = req.body.language;
-    var code = req.body.code;
-    var testCases = req.body.testCases;
+    var lang = req.body.language || 'java';
+    var code = req.body.code || 'code';
+    var testCases = req.body.testCases || 'test case';
     if (lang && code && testCases) {
          var dataInspection = validate({code: code, language: lang});
          if (!dataInspection.validity) {
@@ -36,9 +34,7 @@ app.post('/isolatedTest', function (req, res) {
     else
         sendErrorRes(res, '400');
     var id = new Date().getTime().toString();
-    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (err, data) {
-        if (err)
-            throw err;
+    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (data) {
         sendResponse(res, 200, 200, data);
     });
 
@@ -50,9 +46,9 @@ function sendResponse (res, statusCode, code, data) {
     res.end();
 }
 
-
-function validateKey(key) {
-};
+//function validateKey(key) {
+//    return true;
+//}
 
 
 function sendErrorRes(res, code) {

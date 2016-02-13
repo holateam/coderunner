@@ -6,6 +6,7 @@
     "dockerLifetime"  : 10,
     "dockerLogsLimit" : 1500,
     "docketSharedDir" : "~/Desktop",
+    "dockerDir"       : "../docker",
     "setverSecret"    : "someSecretPassword",
     "supportedLangs"  : [
         "cpp" ],

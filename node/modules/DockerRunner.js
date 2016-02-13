@@ -1,4 +1,4 @@
-var conf        = require('./../config.json');
+var conf        = require('./../config.json') || {supportedLangs:[]};
 var ArgEx       = require('./exceptions/illegalarg').IllegalArgumentException;
 var cp          = require('child_process');
 
@@ -40,55 +40,64 @@ DockerRunner.prototype.run = function(options, cb) {
     // preparing variables
     var docketSharedDir = '/home/vladimir/Desktop'; //conf.docketSharedDir;
     var sessionDir      = docketSharedDir + "/" + opt.sessionId;
-    var dockerDir       = ""; //conf.dockerDir + "/" + lang;
+    //var dockerDir       = ""; //conf.dockerDir + "/" + lang;
     var containerPath   = "cpp_img"; //dockerDir + "/container";
     var params          = '-a stdin -a stdout -a stderr --net none -v '+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
-
-    var errHandler = function (err) {
-        if (err) throw err;
-    }
 
     // preparing shared files
     //cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input & echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", errHandler);
     cp.exec("mkdir " + sessionDir);
     cp.exec("mkdir " + sessionDir + "/input");
     cp.exec("echo '"+opt.code+"' >> " + sessionDir+"/input/code");
-    // creating empty response object
-    var response = {
-        dockerError     : null,
-        compilerErrors  : null, 
-        stdout          : [ ],
-        stderr          : [ ],
-        timestamps      : [ ]
+    okGoodLetsGo();
+
+    //cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input", function(err) {
+    //    if (err) console.log(err);
+    //    cp.exec("echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", function (err) {
+    //        if (err)
+    //            return cb(e);
+    //        okGoodLetsGo();
+    //    });
+    //});
+
+    function okGoodLetsGo() {
+        // creating empty response object
+        var response = {
+            dockerError: null,
+            compilerErrors: null,
+            stdout: [],
+            stderr: [],
+            timestamps: []
+        };
+
+        // function to finalize testing from callback
+        var finalize = function () {
+            if (opt.callback)
+                opt.callback(opt.sessionId, response);
+        };
+
+        // preparing compilation command and callback
+        var compile_command = 'docker run ' + params + ' ' + containerPath + ' start '; // + opt.sessionId;
+        var compile_callback = function (err, stdout, stderr) {
+            console.log("returned from docker: ", stdout, stderr, err);
+            if (err) {
+                console.log("err: ", err);
+                throw err;
+            }
+            if (stderr) {
+                console.log("stderr: ", stderr);
+                response.compilerErrors = stderr;
+                finalize();
+            } else {
+                console.log("result: ", stdout);
+            }
+        };
+        // execute compilation process
+        cp.exec(compile_command, compile_callback);
     }
 
-    // function to finalize testing from callback
-    var finalize = function() {
-        if (opt.callback)
-            opt.callback(opt.sessionId, response);
-    }
-
-    // preparing compilation command and callback
-    var compile_command = 'docker run ' + params + ' ' + containerPath + ' start '; // + opt.sessionId;
-    var compile_callback = function(err, stdout, stderr) {
-        console.log("returned from docker: ",stdout,stderr,err);
-        if (err){
-            console.log("err: ",err);
-            throw err;
-        }
-        if (stderr) {
-            console.log("stderr: ",stderr);
-            response.compilerErrors = stderr;
-            finalize();
-        } else {
-            console.log("result: ",stdout);
-        }
-    }
-    // execute compilation process
-    cp.exec(compile_command, compile_callback);
-
-    // single testcase execution function
-    // used for sync beheviour
+    // single test case execution function
+    // used for sync behaviour
 /*
     var caseData = {
         caseIdx : 0,
