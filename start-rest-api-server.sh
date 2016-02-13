@@ -1,3 +1,3 @@
 #!/bin/bash
-cd ./coderunner/node
+cd node
 node server.js
