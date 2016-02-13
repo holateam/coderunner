@@ -1,4 +1,3 @@
 .idea/
-node/.env
 node/debug.log
 node/node_modules/
