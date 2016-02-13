@@ -1,17 +1,17 @@
-var config = require('./config.json');
+var config = require('../config.json');
 
 function javaValidator(code) {
     return {validity: true, log: null};
 };
 function cppValidator(code) {
     //var deniedCommands = ['ofstream', 'stringstream', 'fwrite', 'fputc', 'fputs', 'fprintf'];
-    if (code.length > config.quotes.codeLength)
+/*    if (code.length > config.quotes.codeLength)
         return {validity: false, log: "the characters limit exceeded"};
     code = code.replace(/asm/g,'aaa');
     code = code.replace(/(^|\n)\u0023(.+)/g,'');
     code = config.includes.acceptedCpp + code;
     console.log(code);
-    return {validity: true, log: null};
+*/    return {validity: true, log: null};
 };
 
 function phpValidator(code) {
