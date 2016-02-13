@@ -23,7 +23,7 @@ app.post('/isolatedTest', function (req, res) {
     //var securityCode = req.query.key;
     //validateKey(securityCode);
     var lang = req.body.language || 'java';
-    var code = req.body.code || 'code';
+    var code = (req.body.code) ;// ? JSON.parse(req.body.code) : 'code';
     var testCases = req.body.testCases || 'test case';
     if (lang && code && testCases) {
          var dataInspection = validate({code: code, language: lang});
