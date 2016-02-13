@@ -32,9 +32,9 @@ app.post('/isolatedTest', function (req, res) {
          if (!dataInspection.validity) {
              sendResponse(res, 200, 422, dataInspection.log)
          }
-    }
-    else
+    } else {
         sendErrorRes(res, '400');
+    }
     var id = new Date().getTime().toString();
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (data) {
         console.log("sending answer to user", data);
