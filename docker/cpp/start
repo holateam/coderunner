@@ -1,19 +1,9 @@
-echo $1
-cd /"$1"/input
+#!/bin/bash
+cd /opt/data/input
 if [ -x runner ];
 then
     ./runner
 else
-    if [ -f code ];
-    then
-        mv code code.cpp
-	g++ -std=c++11 -o runner code.cpp 2> logCompile
-	if [ $? = 0 ]; 
-	then
-	    ./runner
-	fi
-    else
-	echo "No source file" > logCompile
-    fi
+    echo "No compiled file"
 fi
 

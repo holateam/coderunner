@@ -1,0 +1,6 @@
+#!/bin/bash
+cd /opt/data/input
+mv code code.cpp
+sed -i 's/~~~/\n/g' code.cpp
+g++ -std=c++11 -o runner code.cpp 2> logCompile
+
