@@ -111,13 +111,13 @@ DockerRunner.prototype.run = function(options, cb) {
             caseLimit : opt.testCases.length
         };
 
-        var params = '-a stdin -a stdout -a stderr --net none -v '+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
+        var params = '-a stdin -a stdout -a stderr --net none -i -v '+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
 
         function runNextCase() {
             // prepare and execute testcases
             var testCase = opt.testCases[caseData.caseIdx++];
-            var piped = 'echo -e \''+testCase+'\' | ' + command;
+            var piped = 'echo \"'+testCase+'\" | ' + command;
             console.log("test", piped);
             cp.exec(piped, test_callback);
         }
