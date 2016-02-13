@@ -2,7 +2,7 @@ var conf        = require('./../config.json') || {supportedLangs:[]};
 var ArgEx       = require('./exceptions/illegalarg').IllegalArgumentException;
 var cp          = require('child_process');
 
-function DockerRunner(){} 
+function DockerRunner(){}
 
 DockerRunner.prototype.run = function(options, cb) {
 
@@ -38,11 +38,11 @@ DockerRunner.prototype.run = function(options, cb) {
         throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs));
 
     // preparing variables
-    var docketSharedDir = '/home/vladimir/Desktop'; //conf.docketSharedDir;
+    var docketSharedDir = "";//conf.dockerSharedDir;
     var sessionDir      = docketSharedDir + "/" + opt.sessionId;
     //var dockerDir       = ""; //conf.dockerDir + "/" + lang;
     var containerPath   = "cpp_img"; //dockerDir + "/container";
-    var params          = '-a stdin -a stdout -a stderr --net none -v '+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
+    var params          = '-a stdin -a stdout -a stderr --net none -v $(pwd)'+docketSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
 
     // preparing shared files
 
