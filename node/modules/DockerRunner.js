@@ -113,14 +113,5 @@ DockerRunner.prototype.run = function(options) {
 
 };
 
-// exports.DockerRunner = DockerRunner;
-
-var opt = {
-    sessionId   : "888",
-    code        : "options.code      || null",
-    language    : "cpp",
-    testCases   : ["dsds"],
-    callback    : null
-};
-var a = new DockerRunner();
-a.run(opt);
+exports.DockerRunner = DockerRunner;
+module.exports = DockerRunner;

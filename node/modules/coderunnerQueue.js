@@ -12,7 +12,7 @@ function RunnerQueue() {
     var DockerRunner = require('./DockerRunner');
     this.dockerRunner = new DockerRunner();
 
-    var config = require('./config.json');
+    var config = require('../config.json');
     this.maxWorkingTaskNumber = config.MaxWorkingTaskNumber;
 }
 
