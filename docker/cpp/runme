@@ -1,1 +1,1 @@
-docker build -t cpp_img .
+docker build -t container .
