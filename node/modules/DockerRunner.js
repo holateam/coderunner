@@ -1,6 +1,5 @@
 var conf        = require('../config.json');
 var ArgEx       = require('./exceptions/illegalarg').IllegalArgumentException;
-var logAnalizer = require('./logAnalizer');
 var cp          = require('child_process');
 
 DockerRunner(){} 
@@ -57,7 +56,8 @@ DockerRunner.prototype.run = function(options) {
 
     // function to finalize testing from callback
     var finalize = function() {
-        logAnalizer.process(result);
+        if (opt.callback)
+            opt.callback(opt.sessionId, response);
     }
 
     // preparing compilation command and callback
