@@ -1,49 +1,64 @@
 var config = require('../config.json');
 
-function javaValidator(code) {
+function javaValidator(soursecode) {
     return {validity: true, log: null};
-};
-function cppValidator(code) {
-    //var deniedCommands = ['ofstream', 'stringstream', 'fwrite', 'fputc', 'fputs', 'fprintf'];
-/*    if (code.length > config.quotes.codeLength)
-        return {validity: false, log: "the characters limit exceeded"};
-    code = code.replace(/asm/g,'aaa');
-    code = code.replace(/(^|\n)\u0023(.+)/g,'');
-    code = config.includes.acceptedCpp + code;
-    console.log(code);
-*/    return {validity: true, log: null};
-};
+}
 
-function phpValidator(code) {
-    return {validity: true, log: null};
-};
+function cppValidator(soursecode) {
+    /*var log = [];
+    soursecode.code = soursecode.code.replace(/asm/g,'aaa'); //rename all 'asm' to avoid assembler inserts
 
-function nodeValidator(code) {
-    return {validity: true, log: null};
-};
+    var pos, end_pos; // start and finish position of searching string
+    var regPattern = /\u0023(.+)/;  //pattern for substring with any number of any symbols enclose between '#' and '\n'
+    var end = /\n/; //end of pattern string that starts with '#'
+    var code = soursecode.code;
+    while ((pos = code.search(regPattern)) != -1) {
+        code = code.substr(pos);
+        end_pos = code.search(end);
+        var pattern = code.substr(0, end_pos);
+        if (!(pattern.replace(/\s/g,'') in config.includes.acceptedCpp)) {
+            log.push({"danger-level": 2, "text": pattern, "comment": "Not allowed to use"});
+        }
+        code = code.substr(end_pos);
+    }
 
-function pythonValidator(code) {
+    if (log.length > 0)
+        return {validity: false, log: log};
+*/
     return {validity: true, log: null};
-};
+}
+
+function phpValidator(soursecode) {
+    return {validity: true, log: null};
+}
+
+function nodeValidator(soursecode) {
+    return {validity: true, log: null};
+}
+
+function pythonValidator(soursecode) {
+    return {validity: true, log: null};
+}
 
 
 
 function validate(soursecode) {
-    var lang = soursecode.language;
-    if (lang == 'java') {
-        return javaValidator(soursecode.code);
-    } else if (lang == 'cpp') {
-        var response = cppValidator(soursecode.code);
-        return response;
-    } if (lang == 'php') {
-        return phpValidator(soursecode.code);
-    } if (lang == 'node') {
-        return nodeValidator(soursecode.code);
-    } if (lang == 'python') {
-        return pythonValidator(soursecode.code);
+    if (soursecode.code.length > config.quotes.codeLength) {
+        return {validity: false, log: [{"danger-level": 1, "text": null, "comment": "The characters limit exceeded"}]};
+    }
+    if (soursecode.language == 'java') {
+        return javaValidator(soursecode);
+    } else if (soursecode.language == 'cpp') {
+        return cppValidator(soursecode);
+    } if (soursecode.language == 'php') {
+        return phpValidator(soursecode);
+    } if (soursecode.language == 'node') {
+        return nodeValidator(soursecode);
+    } if (soursecode.language == 'python') {
+        return pythonValidator(soursecode);
     }
     return false;
 }
-
-//validate({code: "#include <set> \n#include <stringstream> \nfunction main {cin << a; string str = \"somestring\"}; asm(bed code) \n#include <vector> \n int lasma = 3", language: "cpp"})
+/*var sdd={code: "#include <iostream> \n#include <set> \n#include <stringstream> \nfunction main {cin << a; string str = \"somestring\"}; asm(bed code) \n#include <vector> \n int lasma = 3", language: "cpp"};
+validate(sdd);*/
 module.exports = validate;

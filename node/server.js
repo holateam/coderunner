@@ -24,14 +24,14 @@ app.post('/isolatedTest', function (req, res) {
     // /isolatedTest?key=securityCode
     //var securityCode = req.query.key;
     //validateKey(securityCode);
-    var lang = req.body.language || 'java';
+    var lang = req.body.language;
     var code = (req.body.code) ;// ? JSON.parse(req.body.code) : 'code';
-    var testCases = req.body.testCases || 'test case';
+    var testCases = req.body.testCases;
     if (lang && code && testCases) {
-         var dataInspection = validate({code: code, language: lang});
-         if (!dataInspection.validity) {
-             sendResponse(res, 200, 422, dataInspection.log)
-         }
+        var dataInspection = validate({code: code, language: lang});
+        if (!dataInspection.validity) {
+            sendResponse(res, 200, 422, dataInspection.log)
+        }
     } else {
         sendErrorRes(res, '400');
     }
