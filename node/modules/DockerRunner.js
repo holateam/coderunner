@@ -1,10 +1,13 @@
-var conf        = require('../config.json');
+var conf        = require('./../config.json');
 var ArgEx       = require('./exceptions/illegalarg').IllegalArgumentException;
 var cp          = require('child_process');
 
-DockerRunner(){} 
+function DockerRunner(){} 
 
 DockerRunner.prototype.run = function(options) {
+
+    if (!options)
+        throw new ArgEx('you must pass options object as argument');
 
     var opt = {
         sessionId   : options.sessionId || null,
@@ -32,19 +35,21 @@ DockerRunner.prototype.run = function(options) {
         }
     }
     if (!lang)
-        throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' String(conf.supportedLangs));
+        throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs));
 
     // preparing variables
     var docketSharedDir = conf.docketSharedDir;
     var sessionDir      = docketSharedDir + "/" + opt.sessionId;
     var dockerDir       = conf.dockerDir + "/" + lang;
-    var containerPath   = dockerDir + "/" + container;
+    var containerPath   = dockerDir + "/container";
     var params          = '-d --net none';
 
-    // preparing shared files
-    cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input");
-    cp.exec("'"+opt.code+"' >> " + sessionDir+"/input/code");
+    var errHandler = function (err) {
+        if (err) throw err;
+    }
 
+    // preparing shared files
+    cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input & echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", errHandler);
     // creating empty response object
     var response = {
         dockerError     : null,   
@@ -71,18 +76,20 @@ DockerRunner.prototype.run = function(options) {
         }
     }
     // execute compilation process
-    cp.exec(command, compile_callback);
+    cp.exec(compile_command, compile_callback);
 
     // single testcase execution function
     // used for sync beheviour
-    var caseIdx = 0;
-    var caseLimit = opt.testcases.length;
+    var caseData = {
+        caseIdx : 0,
+        caseLimit : opt.testCases.length
+    }
     var params = '-d --net none -a stdin';
     var command = 'docker run ' + params + ' ' + containerPath + ' start ' + opt.sessionId;
     function runNextCase() {
         // prepare and execute testcases
-        var testcase = opt.testcases[caseIdx++];
-        var piped = '\''+testcase+'\' | ' + command;
+        var testcase = opt.testCases[caseData.caseIdx++];
+        var piped = 'echo -e \''+testcase+'\' | ' + command;
         cp.exec(piped, test_callback);
     }
 
@@ -93,7 +100,8 @@ DockerRunner.prototype.run = function(options) {
         response.stdout.push(stdout);
         response.stderr.push(stderr);
         response.timestamps.push(0);
-        if (caseIdx == opt.testcases.length)
+        console.log(caseData.caseIdx);
+        if (caseData.caseIdx >= opt.testCases.length)
             finalize();
         else 
             runNextCase();

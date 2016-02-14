@@ -1,20 +1,21 @@
 {
-  "name": "Coderunner service",
-  "version": "0.0.1"
-  "taskQueueLimit"  : 100,
-  "MaxWorkingTaskNumber": 10,
-  "dockerLifetime"  : 10,
-  "dockerLogsLimit" : 1500,
-  "setverSecret"    : "someSecretPassword",
-  "quotes" : {
-    "tasksPerMinute" : 10,
-    "rageCoeficient" : 1.5,
-    "codeLength"     : 1500,
-    "dockerMaxCores" : 1,
-    "dockerMaxMemory": 512
-  },
-  "alarmObservers" : [
-    "mail@example.com",
-    "somemail@domain.net"
-  ]
+    "name": "Coderunner service",
+    "version": "0.0.1",
+    "taskQueueLimit"  : 100,
+    "MaxWorkingTaskNumber": 10,
+    "dockerLifetime"  : 10,
+    "dockerLogsLimit" : 1500,
+    "docketSharedDir" : "~/Desktop",
+    "setverSecret"    : "someSecretPassword",
+    "supportedLangs"  : [
+        "cpp" ],
+    "quotes" : {
+        "tasksPerMinute" : 10,
+        "rageCoeficient" : 1.5,
+        "codeLength"     : 1500,
+        "dockerMaxCores" : 1,
+        "dockerMaxMemory": 512 },
+    "alarmObservers" : [
+        "mail@example.com",
+        "somemail@domain.net" ]
 }
