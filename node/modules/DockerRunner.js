@@ -7,7 +7,7 @@ function DockerRunner(){}
 DockerRunner.prototype.run = function(options, cb) {
 
     if (!options)
-        throw new ArgEx('you must pass options object as argument');
+        finalize( new ArgEx('you must pass options object as argument') );
 
     var opt = {
         sessionId   : options.sessionId || null,
@@ -19,13 +19,13 @@ DockerRunner.prototype.run = function(options, cb) {
 
     // validate parameters
     if (!opt.sessionId)
-        throw new ArgEx('options.sessionId must be defined');
+        finalize( new ArgEx('options.sessionId must be defined') );
     if (!opt.code)
-        throw new ArgEx('options.code must be defined');
+        finalize( new ArgEx('options.code must be defined') );
     if (!opt.language)
-        throw new ArgEx('options.language must be defined');
+        finalize( new ArgEx('options.language must be defined') );
     if (!opt.testCases)
-        throw new ArgEx('options.testCases must be defined');
+        finalize( new ArgEx('options.testCases must be defined') );
 
     var lang = null;
     for (var i = 0; i < conf.supportedLangs.length; i++) {
@@ -35,7 +35,7 @@ DockerRunner.prototype.run = function(options, cb) {
         }
     }
     if (!lang)
-        throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs));
+        finalize( new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs)) );
 
     // preparing variables
     var docketSharedDir = '/home/vladimir/Desktop'; //conf.docketSharedDir;
@@ -71,9 +71,12 @@ DockerRunner.prototype.run = function(options, cb) {
         };
 
         // function to finalize testing from callback
-        var finalize = function () {
-            if (opt.callback)
-                opt.callback(opt.sessionId, response);
+        var finalize = function (err) {
+            if (opt.callback) {
+                var tempcb = opt.callback ;
+                opt.callback = undefined;
+                tempcb(err, response);
+            }
         };
 
         // preparing compilation command and callback
@@ -82,7 +85,7 @@ DockerRunner.prototype.run = function(options, cb) {
             console.log("returned from docker: ", stdout, stderr, err);
             if (err) {
                 console.log("err: ", err);
-                throw err;
+                finalize(err);
             }
             if (stderr) {
                 console.log("stderr: ", stderr);
@@ -116,7 +119,7 @@ DockerRunner.prototype.run = function(options, cb) {
     // testcse callback function
     var test_callback = function(err, stdout, stderr) {
         if (err)
-            throw err;
+            finalize(err);
         response.stdout.push(stdout);
         response.stderr.push(stderr);
         response.timestamps.push(0);

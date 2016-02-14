@@ -34,7 +34,8 @@ app.post('/isolatedTest', function (req, res) {
     else
         sendErrorRes(res, '400');
     var id = new Date().getTime().toString();
-    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (data) {
+    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (err, data) {
+        if (err) throw err;
         sendResponse(res, 200, 200, data);
     });
 
