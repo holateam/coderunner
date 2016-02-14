@@ -44,12 +44,14 @@ DockerRunner.prototype.run = function(options) {
     var containerPath   = dockerDir + "/container";
     var params          = '-d --net none -v /'+opt.sessionId+' '+sessionDir;
 
-    var errHandler = function (err) {
-        if (err) throw err;
-    }
-
     // preparing shared files
-    cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input & echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", errHandler);
+    cp.exec("mkdir " + sessionDir + " " + sessionDir + "/input", function(err) {
+        if (err) console.log(err);
+        cp.exec("echo -e '"+opt.code+"' >> " + sessionDir+"/input/code", function (err) {
+            if (err) throw err;
+        });
+    });
+
     // creating empty response object
     var response = {
         dockerError     : null,   
@@ -111,4 +113,14 @@ DockerRunner.prototype.run = function(options) {
 
 };
 
-exports.DockerRunner = DockerRunner;
+// exports.DockerRunner = DockerRunner;
+
+var opt = {
+    sessionId   : "888",
+    code        : "options.code      || null",
+    language    : "cpp",
+    testCases   : ["dsds"],
+    callback    : null
+};
+var a = new DockerRunner();
+a.run(opt);
