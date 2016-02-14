@@ -107,7 +107,7 @@ runnerQueue.push(taskObj,callbackFunc),
 ```
 {
 		dockerError: "",
-		compiler errors: "",
+		compilerErrors: "",
 		stdout : [ "testcase1 otp", "testcase2 otp" ],
 		stderr : [ "testcase1 err", "testcase2 err" ],
 		timestamps : [ "testcase1 duration", "testcase2 duration" ]
@@ -190,7 +190,9 @@ dockerRunner.run(taskObj,callbackFunc);
 ###Докер-контейнер
 
 Каждый процесс компиляции или выполнения отдельного тест-кейса стартует в отдельном контейнере. 
-Для обратной связи с хостом используется общая директория, подготовленная менеджером запуска контейнеров.
+Для обратной связи с хостом используются стандартные потоки ввода-вывода.
+
+Контейнеры для всех языков хранятся в директории `./docker`. Для каждого отдельноко контейнера отведен каталог. К примеру, докер-контейнер для работы с С++ кодом должен находится в директории `./docker/cpp/`
 
 Если запущен процесс компиляции -- контейнер компилирует файл `sessionId/input/code` и помещает скомпилированный файл в директорию `sessionId/compiled`. Процесс компиляции логируется в файле  в папке output с именем logCompile. 
 
@@ -209,7 +211,7 @@ dockerRunner.run(taskObj,callbackFunc);
 ```
 	{
 		dockerError : "",
-		compiler errors : "",
+		compilerErrors : "",
 		stdout : [ "testcase1 otp", "testcase2 otp" ],
 		stderr : [ "testcase1 err", "testcase2 err" ],
 		timestamps : [ "testcase1 duration", "testcase2 duration" ]
@@ -227,7 +229,14 @@ testCaseErr - ошибки времени исполнения.
 		paralellTasks 		: 1,
 		dockerLifetime 		: 5,
 		dockerLogsLimit		: 1500,
-		setverSecret 		: "someSecretPassword"
+		setverSecret 		: "someSecretPassword",
+		dockerDir			: "./docker",
+		docketSharedDir 	: "./docker/shared",
+		supportedLangs		: [
+			"cpp",
+			"java",
+			"js"
+		],
 		quotes : {
 			tasksPerMinute	: 10,
 			rageCoeficient	: 1.5,
