@@ -1,6 +1,7 @@
 var conf        = require('./../config.json') || {supportedLangs:[]};
 var ArgEx       = require('./exceptions/illegalarg').IllegalArgumentException;
 var cp          = require('child_process');
+var fs          = require('fs');
 
 function DockerRunner(){}
 
@@ -38,28 +39,31 @@ DockerRunner.prototype.run = function(options, cb) {
         throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs));
 
     // preparing variables
-    var dockerSharedDir = "/shared";//conf.dockerSharedDir;
+    var pwd = fs.realpathSync('.');
+    console.log("pwd:", pwd);
+    var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
-    //var dockerDir       = ""; //conf.dockerDir + "/" + lang;
-    var containerPath   = "cpp_img"; //dockerDir + "/container";
-    var params          = '-a stdin -a stdout -a stderr --net none -v $(pwd)'+dockerSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
+    var containerPath   = "cpp_img";
+    var params          = '--net none -v '+sessionDir+':/opt/data'; //-a stdin -a stdout -a stderr
 
     // preparing shared files
 
     console.log("try to make dirs",sessionDir);
-    cp.exec("mkdir $(pwd)"+dockerSharedDir+" $(pwd)"+sessionDir+" $(pwd)"+sessionDir+"/input", function(err) {
-        if (err) {
-            console.log("err!");
-            console.log(err);
-        }
-        console.log("writing code file");
-        cp.exec("echo '"+opt.code+"' >> $(pwd)" + sessionDir+"/input/code", function (err) {
-            if (err){
-                console.log("Error writing code file");
-                return cb(e);
+    cp.exec("mkdir "+dockerSharedDir, function(err) {
+        cp.exec("mkdir "+sessionDir+" "+sessionDir+"/input", function(err) {
+            if (err) {
+                console.log("err!");
+                console.log(err);
             }
-            console.log("Running code file");
-            okGoodLetsGo();
+            console.log("writing code file");
+            cp.exec("echo '"+opt.code+"' >> "+sessionDir+"/input/code", function (err) {
+                if (err){
+                    console.log("Error writing code file");
+                    return cb(err);
+                }
+                console.log("Running code file");
+                okGoodLetsGo();
+            });
         });
     });
 
@@ -111,7 +115,7 @@ DockerRunner.prototype.run = function(options, cb) {
             caseLimit : opt.testCases.length
         };
 
-        var params = '-a stdin -a stdout -a stderr --net none -i -v '+dockerSharedDir+'/'+opt.sessionId+':/opt/data'; //opt.sessionId+':'+sessionDir;
+        var params = '--net none -i -v '+sessionDir+':/opt/data'; //opt.sessionId+':'+sessionDir;
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
 
         function runNextCase() {
