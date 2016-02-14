@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 // routes
-app.post('/isolated-test', isolatedTest);
+app.post('/isolated-test', isolatedTestRoute);
 
 // if route not found
 app.use(function (req, res) {
@@ -40,7 +40,7 @@ function sendErrorResponse (res, code, message) {
     res.end();
 }
 
-function isolatedTest (req, res) {
+function isolatedTestRoute (req, res) {
 
     var lang = req.body.language;
     var code = (req.body.code);
