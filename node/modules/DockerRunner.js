@@ -3,6 +3,12 @@ var ArgEx       = require('./exceptions/illegalarg').IllegalArgumentException;
 var cp          = require('child_process');
 var fs          = require('fs');
 
+var cpOptions   = {
+    encoding: 'utf8',
+    timeout: parseInt(conf.dockerLifetime) * 1000,
+    killSignal: 'SIGKILL'
+}
+
 function DockerRunner(){}
 
 DockerRunner.prototype.run = function(options, cb) {
@@ -85,9 +91,9 @@ DockerRunner.prototype.run = function(options, cb) {
 
     function okGoodLetsGo() {
         // preparing compilation command and callback
-        var compile_command = 'docker run ' + params + ' ' + containerPath + ' startcompile'; // + opt.sessionId;
+        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile'; // + opt.sessionId;
 
-        var compile_callback = function (err, stdout, stderr) {
+        var compileCallback = function (err, stdout, stderr) {
             console.log("returned from compile-docker: ", stdout, stderr, err);
             if (err) {
                 console.log("err: ", err);
@@ -103,8 +109,10 @@ DockerRunner.prototype.run = function(options, cb) {
             }
         };
         // execute compilation process
-        console.log("exec", compile_command);
-        cp.exec(compile_command, compile_callback);
+        console.log("exec", compileCommand);
+        cp.exec(compileCommand, cpOptions, compileCallback);
+
+        runNextCase();
     }
 
     // single test case execution function
@@ -123,11 +131,11 @@ DockerRunner.prototype.run = function(options, cb) {
             var testCase = opt.testCases[caseData.caseIdx++];
             var piped = 'echo \"'+testCase+'\" | ' + command;
             console.log("test", piped);
-            cp.exec(piped, test_callback);
+            cp.exec(piped, cpOptions, testCallback);
         }
 
         // testcase callback function
-        var test_callback = function(err, stdout, stderr) {
+        var testCallback = function(err, stdout, stderr) {
             console.log("testing callback",err, stdout, stderr);
             if (err)
                 throw err;
@@ -142,9 +150,6 @@ DockerRunner.prototype.run = function(options, cb) {
             else
                 runNextCase();
         };
-
-        runNextCase();
-
     }
 
 };
