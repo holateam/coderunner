@@ -16,14 +16,14 @@
     "codeLength"     : 1500,
     "dockerMaxCores" : 1,
     "dockerMaxMemory": 512 },
-  /*"includes" : {
+  "includes" : {
     "acceptedCpp" : {
       "#include<iostream>" : true,
       "#include<stdlib.h>" : true,
       "#include<string>" : true,
       "#include<vector>" : true
     }
-  },*/
+  },
   "alarmObservers" : [
     "mail@example.com",
     "somemail@domain.net" ]

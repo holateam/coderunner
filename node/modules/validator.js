@@ -5,11 +5,11 @@ function javaValidator(soursecode) {
 }
 
 function cppValidator(soursecode) {
-    /*var log = [];
+    var log = [];
     soursecode.code = soursecode.code.replace(/asm/g,'aaa'); //rename all 'asm' to avoid assembler inserts
 
     var pos, end_pos; // start and finish position of searching string
-    var regPattern = /\u0023(.+)/;  //pattern for substring with any number of any symbols enclose between '#' and '\n'
+    var regPattern = /(\n|^)\s*\u0023(.+)/;  //pattern for string that starts with any number of whitespace and contains any number of any symbols enclosed between '#' and '\n'
     var end = /\n/; //end of pattern string that starts with '#'
     var code = soursecode.code;
     while ((pos = code.search(regPattern)) != -1) {
@@ -24,7 +24,6 @@ function cppValidator(soursecode) {
 
     if (log.length > 0)
         return {validity: false, log: log};
-*/
     return {validity: true, log: null};
 }
 
