@@ -83,18 +83,10 @@ runnerQueue.push(taskObj,callbackFunc),
 Очередь принимает на вход объект задачи, содержащий следующие свойства:
 ```
 {
-<<<<<<< HEAD
-	sessionId: {
-				code: "",
-				language: "",
-				testCases: [ "stdIn 1", "stdIn 2" ]
-				}
-=======
-	sessionId: “”,
-	code: “”,
-	language: “”,
-	testCases: [ “stdIn 1”, “stdIn 2” ]
->>>>>>> 9af89506527694b7ee27a0b2d7b104a478ab0a43
+	sessionId: "",
+	code: "",
+	language: "",
+	testCases: [ "stdIn 1", "stdIn 2" ]
 }
 ```
 и функцию [, callback].
@@ -103,18 +95,10 @@ runnerQueue.push(taskObj,callbackFunc),
 Если лимит не превышен - очередь передает менеджеру запуска контейнеров полученный объект:
 ```
 {
-<<<<<<< HEAD
-	sessionId: {
+	sessionId: "",
 	code: "",
 	language: "",
 	testCases: [ "stdIn 1", "stdIn 2" ]
-	}
-=======
-	sessionId: “”,
-	code: “”,
-	language: “”,
-	testCases: [ “stdIn 1”, “stdIn 2” ]
->>>>>>> 9af89506527694b7ee27a0b2d7b104a478ab0a43
 }
 ```
 вместе со своей функицией [, callback].
@@ -146,7 +130,6 @@ runnerQueue.push(taskObj,callbackFunc);
 Данный модуль получает в качестве входных параметров объект, имеющий следующую структуру:
 
 ```
-<<<<<<< HEAD
 	{
 		sessionId 	: "",
 		code 		: "",
@@ -154,14 +137,6 @@ runnerQueue.push(taskObj,callbackFunc);
 		testCases 	: [ "stdIn 1", "stdIn 2" ],
 		callback 	: function
 	}
-=======
-{
-	sessionId: “”,
-	code: “”,
-	language: “”,
-	testCases: [ “stdIn 1”, “stdIn 2” ]
-}
->>>>>>> 9af89506527694b7ee27a0b2d7b104a478ab0a43
 ```
 
 Но основании параметра language он выбирает требуемый для запуска докера образ, формирует структуру папок следующего вида:
