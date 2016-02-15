@@ -47,7 +47,7 @@ function isolatedTestRoute (req, res) {
     var testCases = req.body.testCases;
 
     if (lang && code && testCases) {
-        var dataInspection = validate({code: code, language: lang});
+        var dataInspection = validate({code: code, testCases: testCases, language: lang});
 
         if (!dataInspection.validity) {
             sendResponse(res, 200, 422, dataInspection.log)

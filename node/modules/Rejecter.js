@@ -3,32 +3,32 @@ var conf = require('./../config.json');
 function Rejecter(){
 	this.users 		= {};
 	this.quote 		= conf.quote.tasksPerMinute;
-	this.rage 		= conf.quote.rageCoeficient;
+	this.rage 		= conf.quote.rageCoefficient;
 	this.patience 	= conf.quote.patience;
 	this.timeCap 	= conf.requestAnaliticsTime;
 };
 
 Rejecter.prototype.getOverflow = function(userId, idx) {
 	return this.users[userId].overflows[idx];
-}
+};
 
 Rejecter.prototype.registerRequest = function(req, userId) {
 	this.users[userId].requests.push(req);
-}
+};
 
 Rejecter.prototype.closeOverflow = function(userId) {
 	this.users[userId].overflows.push({ start : -1, end : -1 })
-}
+};
 
 Rejecter.prototype.registerUser = function(userId) {
 	if (this.users[userId] == undefined) {
-		this.users[userId] = { 
-			overflows: [], 
-			requests : [] 
+		this.users[userId] = {
+			overflows: [],
+			requests : []
 		};
 		this.closeOverflow(userId);
 	}
-}
+};
 
 Rejecter.prototype.updateOverflow = function(userId, end) {
 	var idx = this.users[userId].overflows.length-1;
@@ -36,7 +36,7 @@ Rejecter.prototype.updateOverflow = function(userId, end) {
 		this.users[userId].overflows[idx].start = end;
 	this.users[userId].overflows[idx].end = end;
 	console.log('updated:', this.users[userId].overflows[idx].start, this.users[userId].overflows[idx].end);
-}
+};
 
 Rejecter.prototype.isRequestAllowed = function(userId) {
 
@@ -95,7 +95,7 @@ Rejecter.prototype.isRequestAllowed = function(userId) {
 			var weight = 1 - Math.exp(-1*this.timeCap/timePassed);
 			var anger =  Math.exp(duration);
 			patience -= weight * anger;
-			
+
 			// console.log('patience: ', patience, "=", weight, "*", anger);
 			if (patience <= 0) {
 				return false;
@@ -105,4 +105,4 @@ Rejecter.prototype.isRequestAllowed = function(userId) {
 
 		return true;
 	}
-}
+};

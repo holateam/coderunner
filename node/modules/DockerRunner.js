@@ -50,7 +50,7 @@ DockerRunner.prototype.run = function(options, cb) {
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
     var containerPath   = "cpp_img";
-    var params          = '--net none -v '+sessionDir+':/opt/data'; //-a stdin -a stdout -a stderr
+    var params          = '--net none -v '+sessionDir+':/opt/data';
 
     // preparing shared files
 
@@ -129,8 +129,12 @@ DockerRunner.prototype.run = function(options, cb) {
             // prepare and execute testcases
             var testCase = opt.testCases[caseData.caseIdx++];
             var piped = 'echo \"'+testCase+'\" | ' + command;
-            console.log("test", piped);
+            console.log("test begining: ", piped);
             cp.exec(piped, cpOptions, testCallback);
+            var currentCP=cp;
+            var timeOutedCheck=function(){
+
+            }
         }
 
         // testcase callback function
