@@ -4,6 +4,7 @@ var log = require('./modules/logger')(module);
 var env = require('node-env-file');
 var validate = require('./modules/validator');
 var getMessageByHTTPCode = require('./configs/code-messages.js');
+var createConfig = require('./modules/configCorrector.js');
 var config = require('./config.json');
 var Queue = require('./modules/coderunnerQueue');
 var queue = new Queue();
