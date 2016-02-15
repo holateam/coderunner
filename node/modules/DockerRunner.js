@@ -13,8 +13,18 @@ function DockerRunner(){}
 
 DockerRunner.prototype.run = function(options, cb) {
 
-    if (!options)
-        throw new ArgEx('you must pass options object as argument');
+    // creating empty response object
+    var response = {
+        dockerError: null,
+        compilerErrors: null,
+        stdout: [],
+        stderr: [],
+        timestamps: []
+    };
+
+    if (!options) {
+        finalize( new ArgEx('you must pass options object as argument') );
+    };
 
     var opt = {
         sessionId   : options.sessionId || null,
@@ -24,15 +34,31 @@ DockerRunner.prototype.run = function(options, cb) {
         callback    : cb || null
     };
 
+    // function to finalize testing from callback
+    var finalize = function (err) {
+        console.log("finalizing");
+        if (opt.callback) {
+            opt.callback(err, { sessionId:opt.sessionId, response:response });
+        } else {
+            if (err) {
+                console.error(err);
+            }
+        }
+    };
+
     // validate parameters
-    if (!opt.sessionId)
-        throw new ArgEx('options.sessionId must be defined');
-    if (!opt.code)
-        throw new ArgEx('options.code must be defined');
-    if (!opt.language)
-        throw new ArgEx('options.language must be defined');
-    if (!opt.testCases)
-        throw new ArgEx('options.testCases must be defined');
+    if (!opt.sessionId) {
+        finalize( new ArgEx('options.sessionId must be defined') );
+    };
+    if (!opt.code) {
+        finalize( new ArgEx('options.code must be defined') );
+    };
+    if (!opt.language) {
+        finalize( new ArgEx('options.language must be defined') );
+    };
+    if (!opt.testCases) {
+        finalize( new ArgEx('options.testCases must be defined') );
+    };
 
     var lang = null;
     for (var i = 0; i < conf.supportedLangs.length; i++) {
@@ -41,20 +67,21 @@ DockerRunner.prototype.run = function(options, cb) {
             break;
         }
     }
-    if (!lang)
-        throw new ArgEx('language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs));
+    if (!lang) {
+        var message = 'language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs);
+        finalize( new ArgEx(message) );
+    }
 
     // preparing variables
     var pwd = fs.realpathSync('.');
     console.log("pwd:", pwd);
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
-    var containerPath   = "cpp_img";
     var params          = '--net none -v '+sessionDir+':/opt/data';
+    var containerPath   = opt.language+"_img";
 
     // preparing shared files
-
-    console.log("try to make dirs",sessionDir);
+    console.log("trying to make dirs",sessionDir);
     cp.exec("mkdir "+dockerSharedDir, function(err) {
         cp.exec("mkdir "+sessionDir+" "+sessionDir+"/input", function(err) {
             if (err) {
@@ -74,22 +101,7 @@ DockerRunner.prototype.run = function(options, cb) {
         });
     });
 
-    // function to finalize testing from callback
-    var finalize = function () {
-        console.log("finalizing");
-        if (opt.callback)
-            opt.callback(opt.sessionId, response);
-    };
-
-    // creating empty response object
-    var response = {
-        dockerError: null,
-        compilerErrors: null,
-        stdout: [],
-        stderr: [],
-        timestamps: []
-    };
-
+    //
     function okGoodLetsGo() {
         // preparing compilation command and callback
         var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile'; // + opt.sessionId;
@@ -98,7 +110,7 @@ DockerRunner.prototype.run = function(options, cb) {
             console.log("returned from compile-docker: ", stdout, stderr, err);
             if (err) {
                 console.log("err: ", err);
-                throw err;
+                finalize(err);
             }
             if (stderr) {
                 console.log("stderr: ", stderr);
@@ -109,10 +121,19 @@ DockerRunner.prototype.run = function(options, cb) {
                 runTestCases();
             }
         };
+
         // execute compilation process
         console.log("exec", compileCommand);
         cp.exec(compileCommand, cpOptions, compileCallback);
-    }
+    };
+
+    // prepare and execute testcases
+    function runNextCase() {
+        var testCase = opt.testCases[caseData.caseIdx++];
+        var piped = 'echo \"'+testCase+'\" | ' + command;
+        console.log("test", piped);
+        cp.exec(piped, cpOptions, testCallback);
+    };
 
     // single test case execution function
     function runTestCases(){
@@ -125,37 +146,27 @@ DockerRunner.prototype.run = function(options, cb) {
         var params = '--net none -i -v '+sessionDir+':/opt/data'; //opt.sessionId+':'+sessionDir;
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
 
-        function runNextCase() {
-            // prepare and execute testcases
-            var testCase = opt.testCases[caseData.caseIdx++];
-            var piped = 'echo \"'+testCase+'\" | ' + command;
-            console.log("test begining: ", piped);
-            cp.exec(piped, cpOptions, testCallback);
-            var currentCP=cp;
-            var timeOutedCheck=function(){
-
-            }
-        }
-
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
             console.log("testing callback",err, stdout, stderr);
-            if (err)
-                throw err;
+            if (err) {
+                finalize(err);
+            }
             response.stdout.push(stdout);
             response.stderr.push(stderr);
             response.timestamps.push(0);
 
             console.log(caseData.caseIdx);
 
-            if (caseData.caseIdx >= opt.testCases.length)
+            if (caseData.caseIdx >= opt.testCases.length){
                 finalize();
-            else
+            } else {
                 runNextCase();
+            }
         };
 
         runNextCase();
-    }
+    };
 };
 
 exports.DockerRunner = DockerRunner;
