@@ -1,1 +1,1 @@
-docker build -t cpp_img .
+sudo docker build -t cpp_img .
