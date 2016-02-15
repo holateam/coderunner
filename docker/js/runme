@@ -1,1 +1,1 @@
-docker build -t js_img .
+sudo docker build -t js_img .

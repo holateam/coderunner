@@ -1,1 +1,1 @@
-docker build -t java_img .
+sudo docker build -t java_img .
