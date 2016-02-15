@@ -125,7 +125,6 @@ DockerRunner.prototype.run = function(options, cb) {
         // execute compilation process
         console.log("exec", compileCommand);
         cp.exec(compileCommand, cpOptions, compileCallback);
-        runNextCase();
     };
 
     // prepare and execute testcases
@@ -165,6 +164,8 @@ DockerRunner.prototype.run = function(options, cb) {
                 runNextCase();
             }
         };
+
+        runNextCase();
     };
 };
 
