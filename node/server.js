@@ -79,7 +79,7 @@ function isolatedTestRoute (req, res) {
 	
     var id = new Date().getTime().toString();
 
-    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (err, data) {
+    queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: currentConfig}, function (err, data) {
         if (err) {
             console.error(err.stack);
             sendErrorResponse(res, 500, 'Internal server error');
