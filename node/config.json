@@ -7,12 +7,13 @@
   "dockerLogsLimit" : 1500,
   "docketSharedDir" : "~/Desktop",
   "dockerDir"       : "../docker",
-  "setverSecret"    : "someSecretPassword",
+  "serverSecret"    : "key",
   "supportedLangs"  : [
     "cpp" ],
   "quotes" : {
+    "maxTestCases"   : 10,
     "tasksPerMinute" : 10,
-    "rageCoeficient" : 1.5,
+    "rageCoefficient" : 1.5,
     "codeLength"     : 1500,
     "dockerMaxCores" : 1,
     "dockerMaxMemory": 512 },
