@@ -2,10 +2,13 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var log = require('./modules/logger')(module);
 var env = require('node-env-file');
-var Queue = require('./modules/coderunnerQueue');
-var queue = new Queue();
 var validate = require('./modules/validator');
 var getMessageByHTTPCode = require('./configs/code-messages.js');
+var config = require('./config.json');
+var Queue = require('./modules/coderunnerQueue');
+var queue = new Queue();
+
+
 
 // read configs to process.env
 env(__dirname + '/.env');
@@ -42,20 +45,38 @@ function sendErrorResponse (res, code, message) {
 
 function isolatedTestRoute (req, res) {
 
-    var lang = req.body.language;
-    var code = (req.body.code);
-    var testCases = req.body.testCases;
-
-    if (lang && code && testCases) {
-        var dataInspection = validate({code: code, testCases: testCases, language: lang});
-
-        if (!dataInspection.validity) {
-            sendResponse(res, 200, 422, dataInspection.log)
+    var userName = req.body.userName;
+    var securityCode = req.body.serverSecret;
+    if (userName && securityCode) {
+        if (!validateKey(securityCode)) {
+            sendErrorResponse(res, '403', 'Access denied');
+            return;
         }
     } else {
         sendErrorResponse(res, '400', 'Wrong parameters');
+        return;
     }
-
+	
+    var lang = req.body.language;
+    var code = (req.body.code);
+    var testCases = req.body.testCases;
+    if (lang && code && testCases) {
+        var dataInspection = validate({code: code, language: lang});
+        if (!dataInspection.validity) {
+            sendResponse(res, 200, 422, dataInspection.log);
+            return;
+        }
+    } else {
+        sendErrorResponse(res, '400', 'Wrong parameters');
+        return;
+    }
+	
+    var optionalConfig = req.body.optionalConfig;
+    var currentConfig = null;
+    if (optionalConfig) {
+        currentConfig = createConfig(optionalConfig);
+    }
+	
     var id = new Date().getTime().toString();
 
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (err, data) {
@@ -67,4 +88,8 @@ function isolatedTestRoute (req, res) {
             sendResponse(res, 200, 200, data);
         }
     });
+}
+
+function validateKey(key) {
+    return (config.serverSecret == key);
 }
