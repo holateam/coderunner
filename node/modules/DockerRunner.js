@@ -71,14 +71,6 @@ DockerRunner.prototype.run = function(options, cb) {
                 console.log("Running code file");
                 okGoodLetsGo();
             });
-            //cp.exec("echo '"+opt.code+"' >> "+sessionDir+"/input/code", function (err) {
-            //    if (err){
-            //        console.log("Error writing code file");
-            //        return cb(err);
-            //    }
-            //    console.log("Running code file");
-            //    okGoodLetsGo();
-            //});
         });
     });
 
