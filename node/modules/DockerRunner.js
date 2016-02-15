@@ -79,7 +79,7 @@ DockerRunner.prototype.run = function(options, cb) {
     console.log("pwd:", pwd);
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
-    var params          = '--net none -v '+sessionDir+':/opt/data';
+    var params          = '--net none --rm -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
 
     // preparing shared files
@@ -137,15 +137,18 @@ DockerRunner.prototype.run = function(options, cb) {
             caseLimit : opt.testCases.length
         };
 
-        var params = '--net none -i -v '+sessionDir+':/opt/data'; //opt.sessionId+':'+sessionDir;
+        var params = '--net none -i --rm -v '+sessionDir+':/opt/data'; //opt.sessionId+':'+sessionDir;
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
 
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
             console.log("testing callback",err, stdout, stderr);
             if (err) {
-                if(err.signal != 'SIGKILL')
+                if(err.signal != 'SIGKILL'){
                     finalize(err);
+                } else {
+                    stderr="Error. Process killed because overtime."
+                }
             }
             response.stdout.push(stdout);
             response.stderr.push(stderr);
