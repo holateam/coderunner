@@ -60,9 +60,11 @@ function isolatedTestRoute (req, res) {
 
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (err, data) {
         if (err) {
+            console.error(err.stack);
             sendErrorResponse(res, 500, 'Internal server error');
+        } else {
+            console.log("sending answer to user", data);
+            sendResponse(res, 200, 200, data);
         }
-        console.log("sending answer to user", data);
-        sendResponse(res, 200, 200, data);
     });
 }

@@ -28,23 +28,24 @@ RunnerQueue.prototype.push = function (taskObj, callbackFunction) {
 
 RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFunction) {
     var self = this;
-    var taskPos=this.arrWorkingTasks.length;
+    //var taskPos=this.arrWorkingTasks.length;
 
     var returnFunc = function (err, result) {
         var sessionId=result.sessionId, answerObj=result.response;
         console.log ("Task solution received from docker-manager", sessionId, answerObj);
-        var callbackFunc = self.arrWorkingTasks[taskPos].cb;
-        self.arrWorkingTasks.splice (taskPos, 1);
+        //var callbackFunc = self.arrWorkingTasks[taskPos].cb;
+        //self.arrWorkingTasks.splice (taskPos, 1);
         self.workingTasksCounter--;
 
         if ((self.workingTasksCounter < self.maxWorkingTaskNumber) && (self.arrPendingTasks.length > 0)) {
             var taskToSolve = self.arrPendingTasks.shift ();
             self.sendTaskToDockerRunner (taskToSolve.task, taskToSolve.cb);
         }
-        callbackFunc (answerObj);
+        console.log("send to server answer: ", answerObj);
+        callbackFunction (err, answerObj);
     };
 
-    this.arrWorkingTasks.push ({task: taskObj, cb: callbackFunction});
+    //this.arrWorkingTasks.push ({task: taskObj, cb: callbackFunction});
     this.dockerRunner.run (taskObj, returnFunc);
     this.workingTasksCounter++;
     console.log ("Task sent to docker-manager", taskObj);

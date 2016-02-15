@@ -10,11 +10,11 @@ var cpOptions   = {
 };
 
 function DockerRunner(){
-    this.limitingPipe = ' | head -n '+conf.dockerLogsLines+' -c '+conf.dockerLogsLineBytes;
 }
 
 DockerRunner.prototype.run = function(options, cb) {
 
+    var limitingPipe = ' | head -n '+conf.dockerLogsLines+' -c '+conf.dockerLogsLineBytes;
     // creating empty response object
     var response = {
         dockerError: null,
@@ -106,7 +106,7 @@ DockerRunner.prototype.run = function(options, cb) {
     //
     function okGoodLetsGo() {
         // preparing compilation command and callback
-        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile' + this.limitingPipe; // + opt.sessionId;
+        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile' + limitingPipe; // + opt.sessionId;
 
         var compileCallback = function (err, stdout, stderr) {
             console.log("returned from compile-docker: ", stdout, stderr, err);
@@ -144,7 +144,8 @@ DockerRunner.prototype.run = function(options, cb) {
         var testCallback = function(err, stdout, stderr) {
             console.log("testing callback",err, stdout, stderr);
             if (err) {
-                finalize(err);
+                if(err.signal != 'SIGKILL')
+                    finalize(err);
             }
             response.stdout.push(stdout);
             response.stderr.push(stderr);
