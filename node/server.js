@@ -20,7 +20,7 @@ app.post('/isolated-test', isolatedTestRoute);
 
 // if route not found
 app.use(function (req, res) {
-    sendErrorResponse(res, 500, 'Route not found');
+    sendErrorResponse(res, 404, 'Route not found');
 });
 
 var server = app.listen(process.env.SERVER_PORT, function () {
@@ -58,7 +58,10 @@ function isolatedTestRoute (req, res) {
 
     var id = new Date().getTime().toString();
 
-    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (data) {
+    queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (err, data) {
+        if (err) {
+            sendErrorResponse(res, 500, 'Internal server error');
+        }
         console.log("sending answer to user", data);
         sendResponse(res, 200, 200, data);
     });

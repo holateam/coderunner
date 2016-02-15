@@ -9,7 +9,9 @@ var cpOptions   = {
     killSignal: 'SIGKILL'
 };
 
-function DockerRunner(){}
+function DockerRunner(){
+    this.limitingPipe = ' | head -n '+conf.dockerLogsLines+' -c '+conf.dockerLogsLineBytes;
+}
 
 DockerRunner.prototype.run = function(options, cb) {
 
@@ -104,7 +106,7 @@ DockerRunner.prototype.run = function(options, cb) {
     // 
     function okGoodLetsGo() {
         // preparing compilation command and callback
-        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile'; // + opt.sessionId;
+        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile' + this.limitingPipe; // + opt.sessionId;
 
         var compileCallback = function (err, stdout, stderr) {
             console.log("returned from compile-docker: ", stdout, stderr, err);
