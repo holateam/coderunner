@@ -129,14 +129,6 @@ DockerRunner.prototype.run = function(options, cb) {
         cp.exec(compileCommand, cpOptions, compileCallback);
     };
 
-    // prepare and execute testcases
-    function runNextCase() {
-        var testCase = opt.testCases[caseData.caseIdx++];
-        var piped = 'echo \"'+testCase+'\" | ' + command;
-        console.log("test", piped);
-        cp.exec(piped, cpOptions, testCallback);
-    };
-
     // single test case execution function
     function runTestCases(){
         // used for sync behaviour
@@ -166,6 +158,14 @@ DockerRunner.prototype.run = function(options, cb) {
                 runNextCase();
             }
         };
+
+        // prepare and execute testcases
+        function runNextCase() {
+            var testCase = opt.testCases[caseData.caseIdx++];
+            var piped = 'echo \"'+testCase+'\" | ' + command;
+            console.log("test", piped);
+            cp.exec(piped, cpOptions, testCallback);
+        }
 
         runNextCase();
     };
