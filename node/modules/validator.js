@@ -9,7 +9,7 @@ function cppValidator(soursecode) {
     soursecode.code = soursecode.code.replace(/asm/g,'aaa'); //rename all 'asm' to avoid assembler inserts
 
     var pos, end_pos; // start and finish position of searching string
-    var regPattern = /(\n|^)\s*\u0023(.+)/;  //pattern for string that starts with any number of whitespace and contains any number of any symbols enclosed between '#' and '\n'
+    var regPattern = /\u0023(.+)/;  //pattern for string with any number of any symbols enclosed between '#' and '\n'
     var end = /\n/; //end of pattern string that starts with '#'
     var code = soursecode.code;
     while ((pos = code.search(regPattern)) != -1) {
