@@ -31,7 +31,7 @@ RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFuncti
     var taskPos=this.arrWorkingTasks.length;
 
     var returnFunc = function (err, result) {
-        result.sessionId; answerObj=result.answerObj;
+        var sessionId=result.sessionId, answerObj=result.response;
         console.log ("Task solution received from docker-manager", sessionId, answerObj);
         var callbackFunc = self.arrWorkingTasks[taskPos].cb;
         self.arrWorkingTasks.splice (taskPos, 1);

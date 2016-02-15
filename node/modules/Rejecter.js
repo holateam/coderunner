@@ -5,8 +5,8 @@ function Rejecter(){
 	this.quote 		= conf.quote.tasksPerMinute;
 	this.rage 		= conf.quote.rageCoefficient;
 	this.patience 	= conf.quote.patience;
-	this.timeCap 	= conf.requestAnaliticsTime;
-};
+	this.timeCap 	= conf.requestAnalyticsTime;
+}
 
 Rejecter.prototype.getOverflow = function(userId, idx) {
 	return this.users[userId].overflows[idx];
@@ -42,18 +42,18 @@ Rejecter.prototype.isRequestAllowed = function(userId) {
 
 	this.registerUser(userId);
 
-	var delay = 60000;
+	var delay = this.timeCap;
 	var amount = 1;
 	var patience = Math.exp(this.patience);
 
 	var currentRequest = {
 		time : (new Date()).getTime()
-	}
+	};
 
 	var userRequests = this.users[userId].requests;
 
 	for (var i = userRequests.length - 1; i > -1; i--) {
-		var delay = currentRequest.time - userRequests[i].time;
+        delay = currentRequest.time - userRequests[i].time;
 		// console.log('delay:', delay);
 		if (delay >= this.timeCap) {
 			break;

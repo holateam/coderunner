@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "taskQueueLimit"  : 100,
   "MaxWorkingTaskNumber": 10,
+  "requestAnalyticsTime": 60000,
   "dockerLifetime"  : 10,
   "dockerLogsLimit" : 1500,
   "docketSharedDir" : "~/Desktop",
