@@ -12,7 +12,7 @@
   "supportedLangs"  : [
     "cpp" ],
   "quotes" : {
-    "maxTestCases"   : 10,
+    "maxTestCases"   : 2,
     "tasksPerMinute" : 10,
     "rageCoefficient" : 1.5,
     "codeLength"     : 1500,

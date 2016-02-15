@@ -41,20 +41,23 @@ function pythonValidator(soursecode) {
 
 
 
-function validate(soursecode) {
-    if (soursecode.code.length > config.quotes.codeLength) {
+function validate(sourceData) {
+    if (sourceData.code.length > config.quotes.codeLength) {
         return {validity: false, log: [{"danger-level": 1, "text": null, "comment": "The characters limit exceeded"}]};
     }
-    if (soursecode.language == 'java') {
-        return javaValidator(soursecode);
-    } else if (soursecode.language == 'cpp') {
-        return cppValidator(soursecode);
-    } if (soursecode.language == 'php') {
-        return phpValidator(soursecode);
-    } if (soursecode.language == 'node') {
-        return nodeValidator(soursecode);
-    } if (soursecode.language == 'python') {
-        return pythonValidator(soursecode);
+    if (sourceData.testCases.length>config.quotes.maxTestCases){
+        return {validity: false, log: [{"danger-level": 1, "text": null, "comment": "Too many test cases"}]};
+    }
+    if (sourceData.language == 'java') {
+        return javaValidator(sourceData);
+    } else if (sourceData.language == 'cpp') {
+        return cppValidator(sourceData);
+    } if (sourceData.language == 'php') {
+        return phpValidator(sourceData);
+    } if (sourceData.language == 'node') {
+        return nodeValidator(sourceData);
+    } if (sourceData.language == 'python') {
+        return pythonValidator(sourceData);
     }
     return false;
 }

@@ -79,8 +79,8 @@ DockerRunner.prototype.run = function(options, cb) {
     console.log("pwd:", pwd);
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
+    var params          = '--net none -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
-    var params          = '--net none -v '+sessionDir+':/opt/data'; //-a stdin -a stdout -a stderr
 
     // preparing shared files
     console.log("trying to make dirs",sessionDir);
@@ -103,7 +103,7 @@ DockerRunner.prototype.run = function(options, cb) {
         });
     });
 
-    // 
+    //
     function okGoodLetsGo() {
         // preparing compilation command and callback
         var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile' + this.limitingPipe; // + opt.sessionId;
