@@ -74,7 +74,7 @@ function isolatedTestRoute (req, res) {
     var optionalConfig = req.body.optionalConfig;
     var currentConfig = null;
     if (optionalConfig) {
-        currentConfig = createConfig(optionalConfig);
+        //currentConfig = createConfig(optionalConfig);
     }
 
     var id = new Date().getTime().toString();
