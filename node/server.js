@@ -1,10 +1,12 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var log = require('./modules/logger')(module);
-
+var env = require('node-env-file');
 var Queue = require('./modules/coderunnerQueue');
 var queue = new Queue();
 var validate = require('./modules/validator');
+
+env(__dirname + '/.env');
 
 var app = express();
 
@@ -30,9 +32,9 @@ app.post('/isolatedTest', function (req, res) {
          if (!dataInspection.validity) {
              sendResponse(res, 200, 422, dataInspection.log)
          }
-    }
-    else
+    } else {
         sendErrorRes(res, '400');
+    }
     var id = new Date().getTime().toString();
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases}, function (data) {
         console.log("sending answer to user", data);
@@ -53,15 +55,15 @@ function sendResponse (res, statusCode, code, data) {
 
 
 function sendErrorRes(res, code) {
-    log.error(msg[code]);
+    log.error(msg[code] || 'Unknown message for code # ' + code);
     res.status(code).json({'error': {'code': code, "message": msg[code]}});
     res.end();
 }
 
-app.use(function (err, req, res) {
+app.use(function (req, res) {
     sendErrorRes(res, 500);
 });
 
-var server = app.listen(3351, function () {
-    console.log('Running on http://localhost:3351');
+var server = app.listen(process.env.SERVER_PORT, function () {
+    console.log('Running on http://localhost:' + process.env.SERVER_PORT);
 });
