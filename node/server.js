@@ -57,6 +57,7 @@ function sendErrorRes(res, code) {
     res.status(code).json({'error': {'code': code, "message": msg[code]}});
     res.end();
 }
+
 app.use(function (err, req, res) {
     sendErrorRes(res, 500);
 });
