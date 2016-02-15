@@ -56,12 +56,12 @@ function isolatedTestRoute (req, res) {
         sendErrorResponse(res, '400', 'Wrong parameters');
         return;
     }
-	
+
     var lang = req.body.language;
     var code = (req.body.code);
     var testCases = req.body.testCases;
     if (lang && code && testCases) {
-        var dataInspection = validate({code: code, language: lang});
+        var dataInspection = validate({code: code, language: lang, testCases: testCases});
         if (!dataInspection.validity) {
             sendResponse(res, 200, 422, dataInspection.log);
             return;
@@ -70,13 +70,13 @@ function isolatedTestRoute (req, res) {
         sendErrorResponse(res, '400', 'Wrong parameters');
         return;
     }
-	
+
     var optionalConfig = req.body.optionalConfig;
     var currentConfig = null;
     if (optionalConfig) {
         currentConfig = createConfig(optionalConfig);
     }
-	
+
     var id = new Date().getTime().toString();
 
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: currentConfig}, function (err, data) {
