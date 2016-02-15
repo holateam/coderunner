@@ -157,8 +157,9 @@ DockerRunner.prototype.run = function(options, cb) {
             else
                 runNextCase();
         };
-    }
 
+        runNextCase();
+    }
 };
 
 exports.DockerRunner = DockerRunner;
