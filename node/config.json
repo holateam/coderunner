@@ -4,7 +4,6 @@
   "taskQueueLimit"  : 100,
   "MaxWorkingTaskNumber": 10,
   "requestAnalyticsTime": 60000,
-  "dockerLifetime"  : 10,
   "dockerLogsLines" : 50,
   "dockerLogsLineBytes" : 256,
   "docketSharedDir" : "~/Desktop",
@@ -14,6 +13,7 @@
     "cpp" ],
   "quotes" : {
     "maxTestCases"   : 2,
+	"taskLifetime"  : 10,
     "tasksPerMinute" : 10,
     "rageCoefficient" : 1.5,
     "codeLength"     : 1500,
