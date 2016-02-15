@@ -7,7 +7,7 @@ var cpOptions   = {
     encoding: 'utf8',
     timeout: parseInt(conf.dockerLifetime) * 1000,
     killSignal: 'SIGKILL'
-}
+};
 
 function DockerRunner(){}
 
@@ -62,14 +62,23 @@ DockerRunner.prototype.run = function(options, cb) {
                 console.log(err);
             }
             console.log("writing code file");
-            cp.exec("echo '"+opt.code+"' >> "+sessionDir+"/input/code", function (err) {
-                if (err){
-                    console.log("Error writing code file");
+            fs.writeFile(sessionDir+"/input/code", opt.code, function(err) {
+                if(err) {
+                    console.log("Error writing code file", err);
                     return cb(err);
                 }
+                console.log("The file was saved!");
                 console.log("Running code file");
                 okGoodLetsGo();
             });
+            //cp.exec("echo '"+opt.code+"' >> "+sessionDir+"/input/code", function (err) {
+            //    if (err){
+            //        console.log("Error writing code file");
+            //        return cb(err);
+            //    }
+            //    console.log("Running code file");
+            //    okGoodLetsGo();
+            //});
         });
     });
 
@@ -111,8 +120,6 @@ DockerRunner.prototype.run = function(options, cb) {
         // execute compilation process
         console.log("exec", compileCommand);
         cp.exec(compileCommand, cpOptions, compileCallback);
-
-        runNextCase();
     }
 
     // single test case execution function

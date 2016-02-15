@@ -19,7 +19,7 @@ function cppValidator(soursecode) {
         if (!(pattern.replace(/\s/g,'') in config.includes.acceptedCpp)) {
             log.push({"danger-level": 2, "text": pattern, "comment": "Not allowed to use"});
         }
-        code = code.substr(end_pos);
+        code = code.substr(end_pos+1);
     }
 
     if (log.length > 0)
