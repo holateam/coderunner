@@ -5,7 +5,7 @@ var fs          = require('fs');
 
 var cpOptions   = {
     encoding: 'utf8',
-    timeout: parseInt(conf.dockerLifetime) * 1000,
+    timeout: parseInt(conf.quotes.taskLifetime) * 1000,
     killSignal: 'SIGKILL'
 };
 
@@ -51,16 +51,16 @@ DockerRunner.prototype.run = function(options, cb) {
     // validate parameters
     if (!opt.sessionId) {
         finalize( new ArgEx('options.sessionId must be defined') );
-    };
+    }
     if (!opt.code) {
         finalize( new ArgEx('options.code must be defined') );
-    };
+    }
     if (!opt.language) {
         finalize( new ArgEx('options.language must be defined') );
-    };
+    }
     if (!opt.testCases) {
         finalize( new ArgEx('options.testCases must be defined') );
-    };
+    }
 
     var lang = null;
     for (var i = 0; i < conf.supportedLangs.length; i++) {

@@ -13,7 +13,7 @@
     "cpp" ],
   "quotes" : {
     "maxTestCases"   : 2,
-	"taskLifetime"  : 10,
+	  "taskLifetime"  : 3,
     "tasksPerMinute" : 10,
     "rageCoefficient" : 1.5,
     "codeLength"     : 1500,
