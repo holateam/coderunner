@@ -2,14 +2,13 @@ var conf = require ('./../config.json') || {supportedLangs: []};
 var ArgEx = require ('./exceptions/illegalarg').IllegalArgumentException;
 var cp = require ('child_process');
 var fs = require ('fs');
+var log = require('./logger');
 
 var cpOptions = {
     encoding: 'utf8',
     //timeout: parseInt(conf.quotes.taskLifetime) * 1000,
     killSignal: 'SIGKILL'
 };
-
-console.log ("cpOptions: ", cpOptions);
 
 function DockerRunner () {
 }
@@ -37,18 +36,6 @@ DockerRunner.prototype.run = function (options, cb) {
         callback: cb || null
     };
 
-    // function to finalize testing from callback
-    var finalize = function (err) {
-        console.log ("finalizing");
-        if (opt.callback) {
-            opt.callback (err, {sessionId: opt.sessionId, response: response});
-        } else {
-            if (err) {
-                console.error (err);
-            }
-        }
-    };
-
     // validate parameters
     if (!opt.sessionId) {
         finalize (new ArgEx ('options.sessionId must be defined'));
@@ -64,6 +51,7 @@ DockerRunner.prototype.run = function (options, cb) {
     }
 
     var lang = null;
+    //noinspection JSDuplicatedDeclaration
     for (var i = 0; i < conf.supportedLangs.length; i++) {
         if (conf.supportedLangs[i] == opt.language) {
             lang = opt.language;
@@ -77,36 +65,54 @@ DockerRunner.prototype.run = function (options, cb) {
 
     // preparing variables
     var pwd = fs.realpathSync('.');
-    console.log("pwd:", pwd);
+    log.info("pwd:", pwd);
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
+    //noinspection JSDuplicatedDeclaration,JSUnresolvedVariable
     for (var i = 1; i < conf.quotes.dockerMaxCores; i++) {
         cpu_param += ', ' + i;
     }
+    //noinspection JSUnresolvedVariable
     var params          = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
 
     // preparing shared files
-    console.log ("trying to make dirs", sessionDir);
-    cp.exec ("mkdir " + dockerSharedDir, function (err) {
-        cp.exec ("mkdir " + sessionDir + " " + sessionDir + "/input", function (err) {
-            if (err) {
-                console.log ("err!");
-                console.log (err);
+
+    try {
+        cp.exec ("mkdir " + dockerSharedDir, function (err) {
+            if(err) {
+                log.error('Cannot create dockerSharedDir >> ' , err);
             }
-            console.log ("writing code file");
-            fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
+            cp.exec ("mkdir " + sessionDir + " " + sessionDir + "/input", function (err) {
                 if (err) {
-                    console.log ("Error writing code file", err);
-                    return cb (err);
+                    log.error('Cannot create directory for session >> ', err);
                 }
-                console.log("The file was saved!");
-                console.log("Running code file");
-                executionEntry();
+                log.info('Write code to file on Docker');
+                try {
+                    fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
+                        if (err) {
+                            log.error("Error writing code file", err);
+                            return cb (err);
+                        }
+
+                        log.info('Starting to run the user code');
+
+                        try {
+                            executionEntry();
+                        } catch (e) {
+                            log.error('Error when execute user code ', e);
+                        }
+
+                    });
+                } catch (e) {
+                    log.error('Error trying to create file with user code ', e)
+                }
             });
         });
-    });
+    } catch (e) {
+        log.error('Error trying to create user directories ', e);
+    }
 
     //
     function executionEntry() {
@@ -114,24 +120,33 @@ DockerRunner.prototype.run = function (options, cb) {
         var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile';
 
         var compileCallback = function (err, stdout, stderr) {
-            console.log ("returned from compile-docker: ", stdout, stderr, err);
+
+            log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
+
             if (err) {
-                console.log ("err: ", err);
                 finalize (err);
+                /** @TODO Here is a trouble about compiling the code so we should parse it and if it's any
+                 * docker error we should send message to the admin */
+                return;
             }
             /** @TODO remove (stderr.substr(0,7)!="WARNING") */
             if (stderr && (stderr.substr(0,7)!="WARNING")) {
-                console.log ("stderr: ", stderr);
                 response.compilerErrors = stderr;
                 finalize ();
             } else {
-                console.log ("compiled ok.", stdout);
+                log.info('Code compiled');
                 runTestCases ();
             }
         };
         // execute compilation process
-        console.log ("exec", compileCommand);
-        cp.exec (compileCommand, cpOptions, compileCallback);
+        log.info("Running docker container: ", compileCommand);
+
+        try {
+            cp.exec (compileCommand, cpOptions, compileCallback);
+        } catch (e) {
+            log.error('Error trying to run docker container');
+        }
+
     }
 
     // single test case execution function
@@ -148,13 +163,13 @@ DockerRunner.prototype.run = function (options, cb) {
 
         // testcase callback function
         var testCallback = function (err, stdout, stderr) {
-            console.log ("testing callback", err, stdout, stderr);
+            log.info ("testcase callback called with the following params: ", err || 'null', stdout || 'null', stderr || 'null');
 
             if (stderr.substr (0, 7) == "WARNING")
                 stderr = "";
 
             if (err) {
-                console.log("err: ",err);
+                log.error("testcase called with the following error: ",err);
                 if(""+err=="Error: stdout maxBuffer exceeded"){
                     stderr+=""+err;
                 } else if (err.code==137) {
@@ -164,13 +179,9 @@ DockerRunner.prototype.run = function (options, cb) {
                 }
             }
 
-            console.log ("stdout: ", stdout);
             response.stdout.push (stdout);
-            console.log ("stderr: ", stderr);
             response.stderr.push (stderr);
             response.timestamps.push (0);
-
-            console.log (caseData.caseIdx);
 
             if (caseData.caseIdx >= opt.testCases.length) {
                 finalize ();
@@ -183,18 +194,34 @@ DockerRunner.prototype.run = function (options, cb) {
         function runNextCase () {
             var testCase = opt.testCases[caseData.caseIdx++];
             var piped = 'echo \"' + testCase + '\" | ' + command;
-            console.log ("test", piped);
+
             cp.exec (piped, cpOptions, testCallback);
 
             var cmd = 'docker kill ' + opt.sessionId;
+            //noinspection JSUnresolvedVariable
             setTimeout (function () {
                 cp.exec (cmd);
-                console.log ("killing by timeout", cmd);
+                log.info("Time is out. Kill container: ", cmd);
             }, parseInt(conf.quotes.taskLifetime) * 1000);
         }
 
         runNextCase ();
     }
+
+    // function to finalize testing from callback
+    function finalize (err) {
+
+        log.error('Finalizing with the following Error: ', err);
+
+        if (opt.callback) {
+            opt.callback (err, {sessionId: opt.sessionId, response: response});
+        } else {
+            if (err) {
+                log.error ('No callback for task');
+            }
+        }
+    }
+
 };
 
 exports.DockerRunner = DockerRunner;

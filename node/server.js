@@ -1,6 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var log = require('./modules/logger')(module);
+var log = require('./modules/logger');
 var env = require('node-env-file');
 var validate = require('./modules/validator');
 var getMessageByHTTPCode = require('./configs/code-messages.js');
@@ -28,6 +28,7 @@ app.use(function (req, res) {
 });
 
 var server = app.listen(process.env.SERVER_PORT, function () {
+    log.info('Running on http://localhost:' + process.env.SERVER_PORT);
     console.log('Running on http://localhost:' + process.env.SERVER_PORT);
 });
 
