@@ -127,7 +127,7 @@ DockerRunner.prototype.run = function(options, cb) {
         // execute compilation process
         console.log("exec", compileCommand);
         cp.exec(compileCommand, cpOptions, compileCallback);
-    };
+    }
 
     // single test case execution function
     function runTestCases(){
@@ -136,16 +136,22 @@ DockerRunner.prototype.run = function(options, cb) {
             caseIdx : 0,
             caseLimit : opt.testCases.length
         };
-
-        var params = '--net none -i --rm -v '+sessionDir+':/opt/data'; //opt.sessionId+':'+sessionDir;
+                    // --storage-opt dm.basesize=1G
+        var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
+            params+= ' --log-driver=json-file --log-opt max-size=1k ';
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
 
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
             console.log("testing callback",err, stdout, stderr);
             if (err) {
-                if(err.signal != 'SIGKILL'){
+                console.log("err: ",err);
+                if(""+err=="Error: stdout maxBuffer exceeded"){
+                    stderr=""+err;
+                } else if(err.signal != 'SIGKILL'){
                     finalize(err);
+                    console.log("err2: cont running");
+                    return;
                 } else {
                     stderr="Error. Process killed because overtime."
                 }
@@ -172,7 +178,7 @@ DockerRunner.prototype.run = function(options, cb) {
         }
 
         runNextCase();
-    };
+    }
 };
 
 exports.DockerRunner = DockerRunner;
