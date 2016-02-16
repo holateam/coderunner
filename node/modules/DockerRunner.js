@@ -76,14 +76,6 @@ DockerRunner.prototype.run = function (options, cb) {
     }
 
     // preparing variables
-<<<<<<< HEAD
-    var pwd = fs.realpathSync ('.');
-    console.log ("pwd:", pwd);
-    var dockerSharedDir = pwd + "/shared";//conf.dockerSharedDir;
-    var sessionDir = dockerSharedDir + "/" + opt.sessionId;
-    var params = '--net none --rm -v ' + sessionDir + ':/opt/data';
-    var containerPath = opt.language + "_img";
-=======
     var pwd = fs.realpathSync('.');
     console.log("pwd:", pwd);
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
@@ -94,7 +86,6 @@ DockerRunner.prototype.run = function (options, cb) {
     }
     var params          = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
->>>>>>> 546fe7426a864838905727ad95dc5672e11d42bd
 
     // preparing shared files
     console.log ("trying to make dirs", sessionDir);
@@ -110,25 +101,15 @@ DockerRunner.prototype.run = function (options, cb) {
                     console.log ("Error writing code file", err);
                     return cb (err);
                 }
-<<<<<<< HEAD
-                console.log ("The file was saved!");
-                console.log ("Running code file");
-                okGoodLetsGo ();
-=======
                 console.log("The file was saved!");
                 console.log("Running code file");
                 executionEntry();
->>>>>>> 546fe7426a864838905727ad95dc5672e11d42bd
             });
         });
     });
 
     //
-<<<<<<< HEAD
-    function okGoodLetsGo () {
-=======
     function executionEntry() {
->>>>>>> 546fe7426a864838905727ad95dc5672e11d42bd
         // preparing compilation command and callback
         var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile';
 
@@ -138,12 +119,8 @@ DockerRunner.prototype.run = function (options, cb) {
                 console.log ("err: ", err);
                 finalize (err);
             }
-            if (stderr) {
-<<<<<<< HEAD
+            if (stderr && (stderr.substr(0,7)!="WARNING")) {
                 console.log ("stderr: ", stderr);
-=======
-                console.log("stderr: ", stderr);
->>>>>>> 546fe7426a864838905727ad95dc5672e11d42bd
                 response.compilerErrors = stderr;
                 finalize ();
             } else {
@@ -163,7 +140,7 @@ DockerRunner.prototype.run = function (options, cb) {
             caseIdx: 0,
             caseLimit: opt.testCases.length
         };
-<<<<<<< HEAD
+
         var params = '--net none -i --rm -m 128MB -v ' + sessionDir + ':/opt/data';
         params += ' --log-driver=json-file --log-opt max-size=1k ';
         var command = 'docker run ' + params + ' --name=' + opt.sessionId + ' ' + containerPath + ' start';
@@ -174,18 +151,6 @@ DockerRunner.prototype.run = function (options, cb) {
 
             if (stderr.substr (0, 7) == "WARNING")
                 stderr = "";
-=======
-
-        var params = '--name "'+opt.sessionId+'" -m '+conf.quotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' ' + containerPath + ' start';
-        
-        var cmd='docker kill '+opt.sessionId;
-
-        setTimeout(function(){
-            cp.exec(cmd);
-            console.log(cmd, " is executed on ", cp.exec);
-        }, 3000);
->>>>>>> 546fe7426a864838905727ad95dc5672e11d42bd
 
             if (err) {
                 console.log("err: ",err);
