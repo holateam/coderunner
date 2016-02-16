@@ -9,6 +9,8 @@ var cpOptions   = {
     killSignal: 'SIGKILL'
 };
 
+console.log("cpOptions: ", cpOptions);
+
 function DockerRunner(){
 }
 
@@ -126,6 +128,7 @@ DockerRunner.prototype.run = function(options, cb) {
 
         // execute compilation process
         console.log("exec", compileCommand);
+        cpOptions.timeout *= 2;
         cp.exec(compileCommand, cpOptions, compileCallback);
     }
 
