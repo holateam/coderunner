@@ -2,3 +2,5 @@
 node/debug.log
 node/node_modules/
 shared/
+node/logs/error.log
+node/logs/info.log
