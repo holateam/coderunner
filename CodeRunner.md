@@ -32,9 +32,17 @@ CodeRunner service
 	Путь : /isolated-test
 	Тело :
 	{
-		code: "",
-		language: "",
-		testCases: [ "stdIn 1", "stdIn 2" ]
+	 "userName": "any name",
+	 "serverSecret": "key",
+	 "code": ""#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}"",
+	 "language": "cpp",
+	 "testCases": ["std1","std2"],
+	 "optionalConfig": { 
+			"taskLifetime": 5, 
+			"maxTestCases": 5, 
+			"dockerMaxCores": 3, 
+			"dockerMaxMemory": 512 
+		}
 	}
 ```
 **Формат ответа на запрос**
@@ -62,9 +70,13 @@ runnerQueue.push(taskObj,callbackFunc),
 	taskId:"",
 	code: “”,
 	language: “”,
-	testCases: [ “stdIn 1”, “stdIn 2” ]
+	testCases: [ “stdIn 1”, “stdIn 2” ],
+	config: {}
 }
 ```
+где ```config``` будет скоректирован опциональными параметрами, которые передал юзер в теле запроса, если они будут в допусимых пределах.
+Если в поле ```optionalConfig``` тела запроса не было передано никаких данных, то значения поля```config``` будет null.
+
  А ```callbackFunc``` возвращает серверу объект такой структуры:
  ```
  {
@@ -86,7 +98,8 @@ runnerQueue.push(taskObj,callbackFunc),
 	sessionId: "",
 	code: "",
 	language: "",
-	testCases: [ "stdIn 1", "stdIn 2" ]
+	testCases: [ "stdIn 1", "stdIn 2" ],
+	config: {}
 }
 ```
 и функцию [, callback].
@@ -98,7 +111,8 @@ runnerQueue.push(taskObj,callbackFunc),
 	sessionId: "",
 	code: "",
 	language: "",
-	testCases: [ "stdIn 1", "stdIn 2" ]
+	testCases: [ "stdIn 1", "stdIn 2" ],
+	config: {}
 }
 ```
 вместе со своей функицией [, callback].
@@ -135,6 +149,7 @@ runnerQueue.push(taskObj,callbackFunc);
 		code 		: "",
 		language 	: "",
 		testCases 	: [ "stdIn 1", "stdIn 2" ],
+		config      : {},
 		callback 	: function
 	}
 ```
@@ -357,18 +372,26 @@ dockerRunner.run(taskObj,callbackFunc);
 Тело:
  ```
  {
- "code": ""#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}"",
+ "userName": "any name",
+ "serverSecret": "key",
+ "code": "#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}",
  "language":"cpp",
- "testCases":["std1","std2"]
+ "testCases":["std1","std2"],
+ "optionalConfig": { 
+        "taskLifetime": 5, 
+        "maxTestCases": 5, 
+        "dockerMaxCores": 3, 
+        "dockerMaxMemory": 512  
+    }
  }
 
  ```
  Не забываем слать запросы на правильный порт и путь:
  ```
- http://localhost:3351/isolated-test
+ http://localhost:5555/isolated-test
  ```
 
 ##Пример запроса курлом
 ```
- curl -H "Content-Type: application/json" -X POST -d '{"code": ""#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}"","language":"cpp","testCases":["std1","std2"]}' http://localhost:5555/isolated-test
+  curl -H "Content-Type: application/json" -X POST -d '{"userName": "any name","serverSecret": "key","code": "#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}","language":"cpp","testCases":["std1","std2"],"optionalConfig": {"taskLifetime": 5,"maxTestCases": 5,"dockerMaxCores": 3,"dockerMaxMemory": 512}}' http://localhost:5555/isolated-test
 ```
