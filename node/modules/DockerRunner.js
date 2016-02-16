@@ -5,7 +5,7 @@ var fs          = require('fs');
 
 var cpOptions   = {
     encoding: 'utf8',
-    timeout: parseInt(conf.quotes.taskLifetime) * 1000,
+    //timeout: parseInt(conf.quotes.taskLifetime) * 1000,
     killSignal: 'SIGKILL'
 };
 
@@ -140,27 +140,33 @@ DockerRunner.prototype.run = function(options, cb) {
                     // --storage-opt dm.basesize=1G
         var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
             params+= ' --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' ' + containerPath + ' start & timeout 3000';
+        var command = 'docker run ' + params + ' --name='+opt.sessionId +' '+ containerPath + ' start';
+
+        var cmd='docker kill '+opt.sessionId;
+
+        setTimeout(function(){
+            cp.exec(cmd);
+            console.log("killing by timeout");
+        }, 3000);
 
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
             console.log("testing callback",err, stdout, stderr);
-            if (err) {
-                console.log("err: ",err);
-                if(""+err=="Error: stdout maxBuffer exceeded"){
-                    stderr=""+err;
-                } else if(err.signal != 'SIGKILL'){
-                    finalize(err);
-                    console.log("err2: cont running");
-                    return;
-                } else {
-                    stderr="Error. Process killed because overtime.";
-                    // kill runner process here!
-
-                }
-            } else {
-                stderr="";
-            }
+            //if (err) {
+            //    console.log("err: ",err);
+            //    if(""+err=="Error: stdout maxBuffer exceeded"){
+            //        stderr=""+err;
+            //    } else if(err.signal != 'SIGKILL'){
+            //        finalize(err);
+            //        console.log("err2: cont running");
+            //        return;
+            //    } else {
+            //        stderr="Error. Process killed because overtime.";
+            //        // kill runner process here!
+            //    }
+            //} else {
+            //    stderr="";
+            //}
             response.stdout.push(stdout);
             response.stderr.push(stderr);
             response.timestamps.push(0);
