@@ -6,8 +6,10 @@ function javaValidator(soursecode) {
 
 function cppValidator(soursecode) {
     var log = [];
-    soursecode.code = soursecode.code.replace(/asm/g,'aaa'); //rename all 'asm' to avoid assembler inserts
-
+    var regExp_asm = /(\b|\u005F{2}|\b\u005F)(asm)(\b|\u005F{2})/; // pattern for find inline assembly (asm, _asm, __asm, __asm__)
+    if(soursecode.code.search(regExp_asm) != -1) {
+        log.push({"danger-level": 3, "text": "asm", "comment": "Not allowed to use"});
+    }
     var pos, end_pos; // start and finish position of searching string
     var regPattern = /(\n|^)\s*\u0023(.+)(\n|$)/;  //pattern for string that starts with any number of whitespace and contains any number of any symbols enclosed between '#' and '\n'
     var end = /(\n|$)/; //end of pattern string that starts with '#'
@@ -45,7 +47,7 @@ function validate(sourceData) {
     if (sourceData.code.length > config.quotes.codeLength) {
         return {validity: false, log: [{"danger-level": 1, "text": null, "comment": "The characters limit exceeded"}]};
     }
-    if (sourceData.testCases.length>config.quotes.maxTestCases){
+    if (sourceData.testCases.length > config.quotes.maxTestCases){
         return {validity: false, log: [{"danger-level": 1, "text": null, "comment": "Too many test cases"}]};
     }
     if (sourceData.language == 'java') {
@@ -61,6 +63,5 @@ function validate(sourceData) {
     }
     return false;
 }
-/*var sdd={code: "#include <iostream> \n#include <set> \n#include <stringstream> \nfunction main {cin << a; string str = \"somestring\"}; asm(bed code) \n#include <vector> \n int lasma = 3", language: "cpp"};
-validate(sdd);*/
+
 module.exports = validate;
