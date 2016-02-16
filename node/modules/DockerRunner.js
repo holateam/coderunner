@@ -119,6 +119,7 @@ DockerRunner.prototype.run = function (options, cb) {
                 console.log ("err: ", err);
                 finalize (err);
             }
+            /** @TODO remove (stderr.substr(0,7)!="WARNING") */
             if (stderr && (stderr.substr(0,7)!="WARNING")) {
                 console.log ("stderr: ", stderr);
                 response.compilerErrors = stderr;
