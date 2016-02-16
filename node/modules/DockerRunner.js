@@ -16,7 +16,6 @@ function DockerRunner(){
 
 DockerRunner.prototype.run = function(options, cb) {
 
-    var limitingPipe = ' | head -n '+conf.dockerLogsLines+' -c '+conf.dockerLogsLineBytes;
     // creating empty response object
     var response = {
         dockerError: null,
@@ -28,7 +27,7 @@ DockerRunner.prototype.run = function(options, cb) {
 
     if (!options) {
         finalize( new ArgEx('you must pass options object as argument') );
-    };
+    }
 
     var opt = {
         sessionId   : options.sessionId || null,
@@ -117,7 +116,7 @@ DockerRunner.prototype.run = function(options, cb) {
                 finalize(err);
             }
             if (stderr) {
-                console.log("stderr: ", stderr);
+                console.zlog("stderr: ", stderr);
                 response.compilerErrors = stderr;
                 finalize();
             } else {
@@ -128,7 +127,6 @@ DockerRunner.prototype.run = function(options, cb) {
 
         // execute compilation process
         console.log("exec", compileCommand);
-        cpOptions.timeout *= 2;
         cp.exec(compileCommand, cpOptions, compileCallback);
     }
 
@@ -142,7 +140,7 @@ DockerRunner.prototype.run = function(options, cb) {
                     // --storage-opt dm.basesize=1G
         var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
             params+= ' --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' ' + containerPath + ' start ';
+        var command = 'docker run ' + params + ' ' + containerPath + ' start & timeout 3000';
 
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
@@ -156,8 +154,12 @@ DockerRunner.prototype.run = function(options, cb) {
                     console.log("err2: cont running");
                     return;
                 } else {
-                    stderr="Error. Process killed because overtime."
+                    stderr="Error. Process killed because overtime.";
+                    // kill runner process here!
+
                 }
+            } else {
+                stderr="";
             }
             response.stdout.push(stdout);
             response.stderr.push(stderr);
