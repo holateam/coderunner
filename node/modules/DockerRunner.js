@@ -108,7 +108,7 @@ DockerRunner.prototype.run = function(options, cb) {
     //
     function okGoodLetsGo() {
         // preparing compilation command and callback
-        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile' + limitingPipe; // + opt.sessionId;
+        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile';
 
         var compileCallback = function (err, stdout, stderr) {
             console.log("returned from compile-docker: ", stdout, stderr, err);
@@ -142,7 +142,7 @@ DockerRunner.prototype.run = function(options, cb) {
                     // --storage-opt dm.basesize=1G
         var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
             params+= ' --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
+        var command = 'docker run ' + params + ' ' + containerPath + ' start ';
 
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
