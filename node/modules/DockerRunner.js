@@ -1,20 +1,20 @@
-var conf        = require('./../config.json') || {supportedLangs:[]};
-var ArgEx       = require('./exceptions/illegalarg').IllegalArgumentException;
-var cp          = require('child_process');
-var fs          = require('fs');
+var conf = require ('./../config.json') || {supportedLangs: []};
+var ArgEx = require ('./exceptions/illegalarg').IllegalArgumentException;
+var cp = require ('child_process');
+var fs = require ('fs');
 
-var cpOptions   = {
+var cpOptions = {
     encoding: 'utf8',
     //timeout: parseInt(conf.quotes.taskLifetime) * 1000,
     killSignal: 'SIGKILL'
 };
 
-console.log("cpOptions: ", cpOptions);
+console.log ("cpOptions: ", cpOptions);
 
-function DockerRunner(){
+function DockerRunner () {
 }
 
-DockerRunner.prototype.run = function(options, cb) {
+DockerRunner.prototype.run = function (options, cb) {
 
     // creating empty response object
     var response = {
@@ -26,41 +26,41 @@ DockerRunner.prototype.run = function(options, cb) {
     };
 
     if (!options) {
-        finalize( new ArgEx('you must pass options object as argument') );
+        finalize (new ArgEx ('you must pass options object as argument'));
     }
 
     var opt = {
-        sessionId   : options.sessionId || null,
-        code        : options.code      || null,
-        language    : options.language  || null,
-        testCases   : options.testCases || null,
-        callback    : cb || null
+        sessionId: options.sessionId || null,
+        code: options.code || null,
+        language: options.language || null,
+        testCases: options.testCases || null,
+        callback: cb || null
     };
 
     // function to finalize testing from callback
     var finalize = function (err) {
-        console.log("finalizing");
+        console.log ("finalizing");
         if (opt.callback) {
-            opt.callback(err, { sessionId:opt.sessionId, response:response });
+            opt.callback (err, {sessionId: opt.sessionId, response: response});
         } else {
             if (err) {
-                console.error(err);
+                console.error (err);
             }
         }
     };
 
     // validate parameters
     if (!opt.sessionId) {
-        finalize( new ArgEx('options.sessionId must be defined') );
+        finalize (new ArgEx ('options.sessionId must be defined'));
     }
     if (!opt.code) {
-        finalize( new ArgEx('options.code must be defined') );
+        finalize (new ArgEx ('options.code must be defined'));
     }
     if (!opt.language) {
-        finalize( new ArgEx('options.language must be defined') );
+        finalize (new ArgEx ('options.language must be defined'));
     }
     if (!opt.testCases) {
-        finalize( new ArgEx('options.testCases must be defined') );
+        finalize (new ArgEx ('options.testCases must be defined'));
     }
 
     var lang = null;
@@ -71,124 +71,123 @@ DockerRunner.prototype.run = function(options, cb) {
         }
     }
     if (!lang) {
-        var message = 'language '+opt.language+' is unsupported, use one of those: ' + String(conf.supportedLangs);
-        finalize( new ArgEx(message) );
+        var message = 'language ' + opt.language + ' is unsupported, use one of those: ' + String (conf.supportedLangs);
+        finalize (new ArgEx (message));
     }
 
     // preparing variables
-    var pwd = fs.realpathSync('.');
-    console.log("pwd:", pwd);
-    var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
-    var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
-    var params          = '--net none --rm -v '+sessionDir+':/opt/data';
-    var containerPath   = opt.language+"_img";
+    var pwd = fs.realpathSync ('.');
+    console.log ("pwd:", pwd);
+    var dockerSharedDir = pwd + "/shared";//conf.dockerSharedDir;
+    var sessionDir = dockerSharedDir + "/" + opt.sessionId;
+    var params = '--net none --rm -v ' + sessionDir + ':/opt/data';
+    var containerPath = opt.language + "_img";
 
     // preparing shared files
-    console.log("trying to make dirs",sessionDir);
-    cp.exec("mkdir "+dockerSharedDir, function(err) {
-        cp.exec("mkdir "+sessionDir+" "+sessionDir+"/input", function(err) {
+    console.log ("trying to make dirs", sessionDir);
+    cp.exec ("mkdir " + dockerSharedDir, function (err) {
+        cp.exec ("mkdir " + sessionDir + " " + sessionDir + "/input", function (err) {
             if (err) {
-                console.log("err!");
-                console.log(err);
+                console.log ("err!");
+                console.log (err);
             }
-            console.log("writing code file");
-            fs.writeFile(sessionDir+"/input/code", opt.code, function(err) {
-                if(err) {
-                    console.log("Error writing code file", err);
-                    return cb(err);
+            console.log ("writing code file");
+            fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
+                if (err) {
+                    console.log ("Error writing code file", err);
+                    return cb (err);
                 }
-                console.log("The file was saved!");
-                console.log("Running code file");
-                okGoodLetsGo();
+                console.log ("The file was saved!");
+                console.log ("Running code file");
+                okGoodLetsGo ();
             });
         });
     });
 
     //
-    function okGoodLetsGo() {
+    function okGoodLetsGo () {
         // preparing compilation command and callback
         var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile';
 
         var compileCallback = function (err, stdout, stderr) {
-            console.log("returned from compile-docker: ", stdout, stderr, err);
+            console.log ("returned from compile-docker: ", stdout, stderr, err);
             if (err) {
-                console.log("err: ", err);
-                finalize(err);
+                console.log ("err: ", err);
+                finalize (err);
             }
             if (stderr) {
-                console.zlog("stderr: ", stderr);
+                console.log ("stderr: ", stderr);
                 response.compilerErrors = stderr;
-                finalize();
+                finalize ();
             } else {
-                console.log("compiled ok.", stdout);
-                runTestCases();
+                console.log ("compiled ok.", stdout);
+                runTestCases ();
             }
         };
-
         // execute compilation process
-        console.log("exec", compileCommand);
-        cp.exec(compileCommand, cpOptions, compileCallback);
+        console.log ("exec", compileCommand);
+        cp.exec (compileCommand, cpOptions, compileCallback);
     }
 
     // single test case execution function
-    function runTestCases(){
+    function runTestCases () {
         // used for sync behaviour
         var caseData = {
-            caseIdx : 0,
-            caseLimit : opt.testCases.length
+            caseIdx: 0,
+            caseLimit: opt.testCases.length
         };
-                    // --storage-opt dm.basesize=1G
-        var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
-            params+= ' --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' --name='+opt.sessionId +' '+ containerPath + ' start';
-
-        var cmd='docker kill '+opt.sessionId;
-
-        setTimeout(function(){
-            cp.exec(cmd);
-            console.log("killing by timeout");
-        }, 3000);
+        var params = '--net none -i --rm -m 128MB -v ' + sessionDir + ':/opt/data';
+        params += ' --log-driver=json-file --log-opt max-size=1k ';
+        var command = 'docker run ' + params + ' --name=' + opt.sessionId + ' ' + containerPath + ' start';
 
         // testcase callback function
-        var testCallback = function(err, stdout, stderr) {
-            console.log("testing callback",err, stdout, stderr);
-            //if (err) {
-            //    console.log("err: ",err);
-            //    if(""+err=="Error: stdout maxBuffer exceeded"){
-            //        stderr=""+err;
-            //    } else if(err.signal != 'SIGKILL'){
-            //        finalize(err);
-            //        console.log("err2: cont running");
-            //        return;
-            //    } else {
-            //        stderr="Error. Process killed because overtime.";
-            //        // kill runner process here!
-            //    }
-            //} else {
-            //    stderr="";
-            //}
-            response.stdout.push(stdout);
-            response.stderr.push(stderr);
-            response.timestamps.push(0);
+        var testCallback = function (err, stdout, stderr) {
+            console.log ("testing callback", err, stdout, stderr);
 
-            console.log(caseData.caseIdx);
+            if (stderr.substr (0, 7) == "WARNING")
+                stderr = "";
 
-            if (caseData.caseIdx >= opt.testCases.length){
-                finalize();
+            if (err) {
+                console.log("err: ",err);
+                if(""+err=="Error: stdout maxBuffer exceeded"){
+                    stderr+=""+err;
+                } else if (err.code==137) {
+                    stderr+="Process killed by timeout.";
+                } else {
+                    stderr+=""+err;
+                }
+            }
+
+            console.log ("stdout: ", stdout);
+            response.stdout.push (stdout);
+            console.log ("stderr: ", stderr);
+            response.stderr.push (stderr);
+            response.timestamps.push (0);
+
+            console.log (caseData.caseIdx);
+
+            if (caseData.caseIdx >= opt.testCases.length) {
+                finalize ();
             } else {
-                runNextCase();
+                runNextCase ();
             }
         };
 
         // prepare and execute testcases
-        function runNextCase() {
+        function runNextCase () {
             var testCase = opt.testCases[caseData.caseIdx++];
-            var piped = 'echo \"'+testCase+'\" | ' + command;
-            console.log("test", piped);
-            cp.exec(piped, cpOptions, testCallback);
+            var piped = 'echo \"' + testCase + '\" | ' + command;
+            console.log ("test", piped);
+            cp.exec (piped, cpOptions, testCallback);
+
+            var cmd = 'docker kill ' + opt.sessionId;
+            setTimeout (function () {
+                cp.exec (cmd);
+                console.log ("killing by timeout", cmd);
+            }, parseInt(conf.quotes.taskLifetime) * 1000);
         }
 
-        runNextCase();
+        runNextCase ();
     }
 };
 
