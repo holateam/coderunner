@@ -5,6 +5,7 @@
     "body-parser": "1.14.2",
     "express": "4.10.2",
     "node-env-file": "^0.1.8",
-    "winston": "2.1.1"
+    "winston": "2.1.1",
+    "fs":"0.0.2"
   }
 }
