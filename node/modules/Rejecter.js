@@ -2,9 +2,9 @@ var conf = require('./../config.json');
 
 function Rejecter(){
 	this.users 		= {};
-	this.quote 		= conf.quote.tasksPerMinute;
-	this.rage 		= conf.quote.rageCoefficient;
-	this.patience 	= conf.quote.patience;
+	this.quote 		= conf.quotes.tasksPerMinute;
+	this.rage 		= conf.quotes.rageCoefficient;
+	this.patience 	= conf.quotes.patience;
 	this.timeCap 	= conf.requestAnalyticsTime;
 }
 

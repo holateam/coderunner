@@ -41,7 +41,6 @@ function sendErrorResponse (res, code, message) {
     log.error(message || getMessageByHTTPCode(code));
 
     res.status(code).json({'error': {'code': code, "message": message || getMessageByHTTPCode(code)}});
-
     res.end();
 }
 
@@ -51,12 +50,10 @@ function isolatedTestRoute (req, res) {
     var securityCode = req.body.serverSecret;
     if (userName && securityCode) {
         if (!validateKey(securityCode)) {
-            sendErrorResponse(res, '403', 'Access denied');
-            return;
+            return sendErrorResponse(res, '403', 'Access denied');
         }
     } else {
-        sendErrorResponse(res, '400', 'Wrong parameters');
-        return;
+        return sendErrorResponse(res, '400', 'Wrong parameters');
     }
 
     var lang = req.body.language;
@@ -65,12 +62,10 @@ function isolatedTestRoute (req, res) {
     if (lang && code && testCases) {
         var dataInspection = validate({code: code, language: lang, testCases: testCases});
         if (!dataInspection.validity) {
-            sendResponse(res, 200, 422, dataInspection.log);
-            return;
+            return sendResponse(res, 200, 422, dataInspection.log);
         }
     } else {
-        sendErrorResponse(res, '400', 'Wrong parameters');
-        return;
+        return sendErrorResponse(res, '400', 'Wrong parameters');
     }
 
     var optionalConfig = req.body.optionalConfig;

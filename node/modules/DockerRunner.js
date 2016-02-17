@@ -6,7 +6,7 @@ var log = require('./logger');
 
 var cpOptions = {
     encoding: 'utf8',
-    //timeout: parseInt(conf.quotes.taskLifetime) * 1000,
+    //timeout: parseInt(conf.userQuotes.taskLifetime) * 1000,
     killSignal: 'SIGKILL'
 };
 
@@ -70,11 +70,11 @@ DockerRunner.prototype.run = function (options, cb) {
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
     //noinspection JSDuplicatedDeclaration,JSUnresolvedVariable
-    for (var i = 1; i < conf.quotes.dockerMaxCores; i++) {
+    for (var i = 1; i < conf.userQuotes.dockerMaxCores; i++) {
         cpu_param += ', ' + i;
     }
     //noinspection JSUnresolvedVariable
-    var params          = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
+    var params          = '-m '+conf.userQuotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
 
     // preparing shared files
@@ -202,7 +202,7 @@ DockerRunner.prototype.run = function (options, cb) {
             setTimeout (function () {
                 cp.exec (cmd);
                 log.info("Time is out. Kill container: ", cmd);
-            }, parseInt(conf.quotes.taskLifetime) * 1000);
+            }, parseInt(conf.userQuotes.taskLifetime) * 1000);
         }
 
         runNextCase ();

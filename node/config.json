@@ -11,14 +11,17 @@
   "serverSecret"    : "key",
   "supportedLangs"  : [
     "cpp" ],
+  "userQuotes" : {
+    "taskLifetime"  : 3,
+    "dockerMaxCores" : 1,
+    "dockerMaxMemory": 512
+  },
   "quotes" : {
     "maxTestCases"   : 2,
-	  "taskLifetime"  : 3,
     "tasksPerMinute" : 10,
     "rageCoefficient" : 1.5,
     "codeLength"     : 1500,
-    "dockerMaxCores" : 1,
-    "dockerMaxMemory": 512 },
+	"dockerMinMemory" : 128,
   "includes" : {
     "acceptedCpp" : {
       "#include<iostream>" : true,
