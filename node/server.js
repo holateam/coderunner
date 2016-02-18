@@ -16,8 +16,13 @@ env(__dirname + '/.env');
 
 var app = express();
 
+app.use(express.static(__dirname));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/index.html');
+});
 
 // routes
 app.post('/isolated-test', isolatedTestRoute);
