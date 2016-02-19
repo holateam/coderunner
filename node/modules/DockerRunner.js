@@ -142,7 +142,7 @@ DockerRunner.prototype.run = function(options, cb) {
             caseLimit : opt.testCases.length
         };
 
-        var params = '--name "'+opt.sessionId+'" -m '+conf.quotes.dockerMaxMemory+'m --cpuset "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data --log-driver=json-file --log-opt max-size=1k ';
+        var params = '--name "'+opt.sessionId+'" -m '+conf.quotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data --log-driver=json-file --log-opt max-size=1k ';
         var command = 'docker run ' + params + ' ' + containerPath + ' start';
         
         var cmd='docker kill '+opt.sessionId;
