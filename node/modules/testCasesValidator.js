@@ -15,9 +15,9 @@ function validate(testCases) {
         //convert test case from UTF-8 to ASCII
         var convTestCase = convert(testCases[i], { in: 'utf8', out: 'binary' });
         var pos = -1;
-        if (testCases[i].length > config.quotes.maxTestCasesLength) {
+        if (convTestCase.length > config.quotes.maxTestCasesLength) {
             addLog(logs, 1, "Test case #" + ++i, "The characters limit exceeded");
-        } else if ((pos = testCases[i].search(regExp)) != -1) {
+        } else if ((pos = convTestCase.search(regExp)) != -1) {
             addLog(logs, 2, "Test case #" + ++i, "contains forbidden symbols");
         }
     }

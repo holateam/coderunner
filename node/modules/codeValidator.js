@@ -18,7 +18,7 @@ function cppValidator(soursecode) {
         code = code.substr(pos);
         end_pos = code.search(end);
         var pattern = code.substr(0, end_pos);
-        if ((pattern.trim()) && !(pattern.replace(/\s/g,'') in config.quotes.includes.acceptedCpp)) {
+        if (pattern.trim() && !config.quotes.includes.acceptedCpp[pattern.replace(/\s/g,'')]) {
             addLog(log, 2, pattern.trim(), "Not allowed to use");
         }
         code = code.substr(end_pos + 1);
