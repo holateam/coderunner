@@ -141,15 +141,9 @@ DockerRunner.prototype.run = function(options, cb) {
             caseIdx : 0,
             caseLimit : opt.testCases.length
         };
-                    // --storage-opt dm.basesize=1G
-<<<<<<< HEAD
-        var params = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
-=======
-        var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
-            params+= ' --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' ' + containerPath + ' start & timeout 3000';
->>>>>>> 0c51568cbba326101b580eda34ac9ea152c46159
+
+        var params = '--name "'+opt.sessionId+'" -m '+conf.quotes.dockerMaxMemory+'m --cpuset "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data --log-driver=json-file --log-opt max-size=1k ';
+        var command = 'docker run ' + params + ' ' + containerPath + ' start';
 
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
