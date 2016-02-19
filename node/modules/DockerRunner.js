@@ -67,6 +67,7 @@ DockerRunner.prototype.run = function (options, cb) {
     var lang = null;
     //noinspection JSDuplicatedDeclaration
     log.info('Checking language support');
+    /** @TODO check supported langs by conf.supportedLangs.indexOf(opt.language) !== -1 */
     for (var i = 0; i < conf.supportedLangs.length; i++) {
         if (conf.supportedLangs[i] == opt.language) {
             lang = opt.language;
@@ -247,7 +248,7 @@ DockerRunner.prototype.run = function (options, cb) {
 
         // logging errors
         if (err) {
-            log.error('Finalizing with the following Error: ', err); 
+            log.error('Finalizing with the following Error: ', err);
         }
 
         // delete temporary folders
