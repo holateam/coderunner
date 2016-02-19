@@ -84,7 +84,7 @@ DockerRunner.prototype.run = function(options, cb) {
     for (var i = 1; i < conf.quotes.dockerMaxCores; i++) {
         cpu_param += ', ' + i;
     }
-    var params          = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
+    var params          = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
 
     // preparing shared files
