@@ -15,6 +15,7 @@ function DockerRunner(){
 DockerRunner.prototype.run = function(options, cb) {
 
     var limitingPipe = ' | head -n '+conf.dockerLogsLines+' -c '+conf.dockerLogsLineBytes;
+
     // creating empty response object
     var response = {
         dockerError: null,
@@ -79,7 +80,11 @@ DockerRunner.prototype.run = function(options, cb) {
     console.log("pwd:", pwd);
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
     var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
-    var params          = '--net none --rm -v '+sessionDir+':/opt/data';
+    var cpu_param = '0';
+    for (var i = 1; i < conf.quotes.dockerMaxCores; i++) {
+        cpu_param += ', ' + i;
+    }
+    var params          = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
 
     // preparing shared files
@@ -98,13 +103,13 @@ DockerRunner.prototype.run = function(options, cb) {
                 }
                 console.log("The file was saved!");
                 console.log("Running code file");
-                okGoodLetsGo();
+                executionEntry();
             });
         });
     });
 
     //
-    function okGoodLetsGo() {
+    function executionEntry() {
         // preparing compilation command and callback
         var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile' + limitingPipe; // + opt.sessionId;
 
@@ -137,8 +142,7 @@ DockerRunner.prototype.run = function(options, cb) {
             caseLimit : opt.testCases.length
         };
                     // --storage-opt dm.basesize=1G
-        var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
-            params+= ' --log-driver=json-file --log-opt max-size=1k ';
+        var params = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data --log-driver=json-file --log-opt max-size=1k ';
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
 
         // testcase callback function
