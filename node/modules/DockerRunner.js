@@ -120,7 +120,7 @@ DockerRunner.prototype.run = function(options, cb) {
                 finalize(err);
             }
             if (stderr) {
-                console.zlog("stderr: ", stderr);
+                console.log("stderr: ", stderr);
                 response.compilerErrors = stderr;
                 finalize();
             } else {
