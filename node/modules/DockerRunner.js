@@ -9,12 +9,12 @@ var cpOptions   = {
     killSignal: 'SIGKILL'
 };
 
+console.log("cpOptions: ", cpOptions);
+
 function DockerRunner(){
 }
 
 DockerRunner.prototype.run = function(options, cb) {
-
-    var limitingPipe = ' | head -n '+conf.dockerLogsLines+' -c '+conf.dockerLogsLineBytes;
 
     // creating empty response object
     var response = {
@@ -27,7 +27,7 @@ DockerRunner.prototype.run = function(options, cb) {
 
     if (!options) {
         finalize( new ArgEx('you must pass options object as argument') );
-    };
+    }
 
     var opt = {
         sessionId   : options.sessionId || null,
@@ -111,7 +111,7 @@ DockerRunner.prototype.run = function(options, cb) {
     //
     function executionEntry() {
         // preparing compilation command and callback
-        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile' + limitingPipe; // + opt.sessionId;
+        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile';
 
         var compileCallback = function (err, stdout, stderr) {
             console.log("returned from compile-docker: ", stdout, stderr, err);
@@ -120,7 +120,7 @@ DockerRunner.prototype.run = function(options, cb) {
                 finalize(err);
             }
             if (stderr) {
-                console.log("stderr: ", stderr);
+                console.zlog("stderr: ", stderr);
                 response.compilerErrors = stderr;
                 finalize();
             } else {
@@ -142,8 +142,14 @@ DockerRunner.prototype.run = function(options, cb) {
             caseLimit : opt.testCases.length
         };
                     // --storage-opt dm.basesize=1G
+<<<<<<< HEAD
         var params = '-m '+conf.quotes.dockerMaxMemory+'m --cpuset "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data --log-driver=json-file --log-opt max-size=1k ';
         var command = 'docker run ' + params + ' ' + containerPath + ' start '; //+ opt.sessionId
+=======
+        var params = '--net none -i --rm -m 128MB -v '+sessionDir+':/opt/data';
+            params+= ' --log-driver=json-file --log-opt max-size=1k ';
+        var command = 'docker run ' + params + ' ' + containerPath + ' start & timeout 3000';
+>>>>>>> 0c51568cbba326101b580eda34ac9ea152c46159
 
         // testcase callback function
         var testCallback = function(err, stdout, stderr) {
@@ -157,8 +163,12 @@ DockerRunner.prototype.run = function(options, cb) {
                     console.log("err2: cont running");
                     return;
                 } else {
-                    stderr="Error. Process killed because overtime."
+                    stderr="Error. Process killed because overtime.";
+                    // kill runner process here!
+
                 }
+            } else {
+                stderr="";
             }
             response.stdout.push(stdout);
             response.stderr.push(stderr);
