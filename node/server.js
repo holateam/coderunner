@@ -2,9 +2,10 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var log = require('./modules/logger');
 var env = require('node-env-file');
-var validate = require('./modules/validator');
+var validateCode = require('./modules/codeValidator');
+var validateTestCases = require('./modules/testCasesValidator');
 var getMessageByHTTPCode = require('./configs/code-messages.js');
-var createConfig = require('./modules/configCorrector.js');
+var checkUserConfig = require('./modules/configCorrector.js');
 var config = require('./config.json');
 var Queue = require('./modules/coderunnerQueue');
 var queue = new Queue();
@@ -64,7 +65,10 @@ function isolatedTestRoute (req, res) {
     var code = (req.body.code);
     var testCases = req.body.testCases;
     if (lang && code && testCases) {
-        var dataInspection = validate({code: code, language: lang, testCases: testCases});
+        var dataInspection = validateCode({code: code, language: lang});
+        if (dataInspection.validity) {
+            dataInspection = validateTestCases(testCases);
+        }
         if (!dataInspection.validity) {
             return sendResponse(res, 200, 422, dataInspection.log);
         }
@@ -73,14 +77,13 @@ function isolatedTestRoute (req, res) {
     }
 
     var optionalConfig = req.body.optionalConfig;
-    var currentConfig = null;
     if (optionalConfig) {
-        currentConfig = createConfig(optionalConfig);
+        checkUserConfig(optionalConfig);
     }
 
     var id = new Date().getTime().toString();
 
-    queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: currentConfig}, function (err, data) {
+    queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig}, function (err, data) {
         if (err) {
             console.error(err.stack);
             sendErrorResponse(res, 500, 'Internal server error');

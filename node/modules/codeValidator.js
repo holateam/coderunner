@@ -1,14 +1,14 @@
 var config = require('../config.json');
 
 function javaValidator(soursecode) {
-    return {validity: true, log: null};
+    return stub(soursecode.language);
 }
 
 function cppValidator(soursecode) {
     var log = [];
     var regExp_asm = /(\b|\u005F{2}|\b\u005F)(asm)(\b|\u005F{2})/; // pattern for find inline assembly (asm, _asm, __asm, __asm__)
     if(soursecode.code.search(regExp_asm) != -1) {
-        log.push({"danger-level": 3, "text": "asm", "comment": "Not allowed to use"});
+        addLog(log, 3, "asm", "Not allowed to use");
     }
     var pos, end_pos; // start and finish position of searching string
     var regPattern = /(\n|^)\s*\u0023(.+)(\n|$)/;  //pattern for string that starts with any number of whitespace and contains any number of any symbols enclosed between '#' and '\n'
@@ -18,50 +18,64 @@ function cppValidator(soursecode) {
         code = code.substr(pos);
         end_pos = code.search(end);
         var pattern = code.substr(0, end_pos);
-        if ((pattern.trim()) && !(pattern.replace(/\s/g,'') in config.quotes.includes.acceptedCpp)) {
-            log.push({"danger-level": 2, "text": pattern.trim(), "comment": "Not allowed to use"});
+        if (pattern.trim() && !config.quotes.includes.acceptedCpp[pattern.replace(/\s/g,'')]) {
+            addLog(log, 2, pattern.trim(), "Not allowed to use");
         }
         code = code.substr(end_pos + 1);
     }
 
-    if (log.length > 0)
-        return {validity: false, log: log};
-    return {validity: true, log: null};
+    return sendResult(log);
 }
 
 function phpValidator(soursecode) {
-    return {validity: true, log: null};
+    return stub(soursecode.language);
 }
 
 function nodeValidator(soursecode) {
-    return {validity: true, log: null};
+    return stub(soursecode.language);
 }
 
 function pythonValidator(soursecode) {
-    return {validity: true, log: null};
+    return stub(soursecode.language);
 }
 
 
 
 function validate(sourceData) {
     if (sourceData.code.length > config.quotes.codeLength) {
-        return {validity: false, log: [{"danger-level": 1, "text": null, "comment": "The characters limit exceeded"}]};
+        var logs = [];
+        addLog(logs, 1, "source code", "The characters limit exceeded");
+        return sendResult(logs);
     }
-    if (sourceData.testCases.length > config.quotes.maxTestCases){
-        return {validity: false, log: [{"danger-level": 1, "text": null, "comment": "Too many test cases"}]};
-    }
-    if (sourceData.language == 'java') {
+    if (sourceData.language.toLowerCase() == 'java') {
         return javaValidator(sourceData);
-    } else if (sourceData.language == 'cpp') {
+    } else if (sourceData.language.toLowerCase() == 'cpp') {
         return cppValidator(sourceData);
-    } if (sourceData.language == 'php') {
+    } if (sourceData.language.toLowerCase() == 'php') {
         return phpValidator(sourceData);
-    } if (sourceData.language == 'node') {
+    } if (sourceData.language.toLowerCase() == 'node') {
         return nodeValidator(sourceData);
-    } if (sourceData.language == 'python') {
+    } if (sourceData.language.toLowerCase() == 'python') {
         return pythonValidator(sourceData);
     }
     return false;
+}
+
+function addLog(logs, dl, text, comment) {
+    logs.push({"danger-level": dl, "text": text, "comment": comment});
+}
+
+
+function  sendResult(logs) {
+    if (logs.length > 0) {
+        return {validity: false, log: logs};
+    } else {
+        return {validity: true, log: null};
+    }
+}
+
+function  stub(lang) {
+    return {validity: false, log: [{"danger-level": 1, "text": lang, "comment": "Sorry, this language is not supported yet"}]};
 }
 
 module.exports = validate;

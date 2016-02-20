@@ -2,15 +2,14 @@ var config = require('../config.json');
 
 function correctConfig(optional) {
     for (var property in optional) {
-        changeProperty(property, parseInt(optional[property]));
+        if (!checkUserQuotes(property, parseInt(optional[property]))) {
+            optional[property] = config.userQuotes[property];
+        }
     }
-    return config;
 }
 
-function changeProperty(property, value) {
-    if (value && value < config.userQuotes[property]) {
-        config.userQuotes[property] = value;
-    }
+function checkUserQuotes(property, value) {
+    return (value && value < config.userQuotes[property]);
 }
 
 module.exports = correctConfig;

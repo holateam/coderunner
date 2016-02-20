@@ -19,6 +19,7 @@
   },
   "quotes": {
     "maxTestCases": 2,
+    "maxTestCasesLength": 100,
     "tasksPerMinute": 10,
     "patience": 5,
     "rageCoefficient": 1.5,
