@@ -217,18 +217,6 @@ public run(callback)
 Метод `setTestCases` принимает нужные тест-кейсы и сохраняет их в себе.
 Метод `run` принимает callback и запускает тест-кейсы по очереди через `DockerExecutor.runTestCase`
 
-### Code Compiler module
-
-Отвечает за компиляцию кода.
-
-API:
-```
-public constructor(sessionId)
-void public run(code:String, callback:function)
-```
-
-Метод `run` должен положить принятый код в нужную папку и запустить компиляцию этого кода с помощью `DockerExecutor.compile`
-
 ### DockerExecutor
 
 DockerExecutor должен запускать команды докера на компиляцию, запуск тест кейса, убивать контейнер по таймауту и ничего больше(!). 
