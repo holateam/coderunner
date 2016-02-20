@@ -1,32 +1,13 @@
-var conf = require ('./../config.json') || {supportedLangs: []};
-var ArgEx = require ('./exceptions/illegalarg').IllegalArgumentException;
-var cp = require ('child_process');
-var fs = require ('fs');
+var conf = require('./../config.json') || {supportedLangs: []};
+var ArgEx = require('./exceptions/illegalarg').IllegalArgumentException;
+var fs = require('fs');
 var mkdirp = require('mkdirp');
 var log = require('./logger');
 var DockerExecutor = require('./dockerExecutor');
 
-var deleteFolderRecursive = function(path) {
-    if( fs.existsSync(path) ) {
-        fs.readdirSync(path).forEach(function(file){
-            var curPath = path + "/" + file;
-            if(fs.lstatSync(curPath).isDirectory()) { // recurse
-                deleteFolderRecursive(curPath);
-            } else { // delete file
-                fs.unlinkSync(curPath);
-            }
-        });
-        fs.rmdirSync(path);
-    }
-};
-
 function DockerRunner () {
-}
 
-DockerRunner.prototype.run = function (options, cb) {
-
-    // creating empty response object
-    var response = {
+    this.response = {
         dockerError: null,
         compilerErrors: null,
         stdout: [],
@@ -34,11 +15,15 @@ DockerRunner.prototype.run = function (options, cb) {
         timestamps: []
     };
 
+}
+
+DockerRunner.prototype.run = function (options, cb) {
+
     if (!options) {
-        finalize (new ArgEx ('you must pass options object as argument'));
+        this.finalize(new ArgEx('you must pass options object as argument'));
     }
 
-    var opt = {
+    this.opt = {
         sessionId: options.sessionId || null,
         code: options.code || null,
         language: options.language || null,
@@ -47,218 +32,197 @@ DockerRunner.prototype.run = function (options, cb) {
     };
 
     // validate parameters
-    if (!opt.sessionId) {
-        finalize (new ArgEx ('options.sessionId must be defined'));
+    if (!this.opt.sessionId) {
+        this.finalize(new ArgEx('options.sessionId must be defined'));
         return;
     }
-    if (!opt.code) {
-        finalize (new ArgEx ('options.code must be defined'));
+    if (!this.opt.code) {
+        this.finalize(new ArgEx('options.code must be defined'));
         return;
     }
-    if (!opt.language) {
-        finalize (new ArgEx ('options.language must be defined'));
+    if (!this.opt.language) {
+        this.finalize(new ArgEx('options.language must be defined'));
         return;
     }
-    if (!opt.testCases) {
-        finalize (new ArgEx ('options.testCases must be defined'));
+    if (!this.opt.testCases) {
+        this.finalize(new ArgEx('options.testCases must be defined'));
         return;
     }
 
-    var lang = null;
-    //noinspection JSDuplicatedDeclaration
     log.info('Checking language support');
-    /** @TODO check supported langs by conf.supportedLangs.indexOf(opt.language) !== -1 */
-    for (var i = 0; i < conf.supportedLangs.length; i++) {
-        if (conf.supportedLangs[i] == opt.language) {
-            lang = opt.language;
-            break;
-        }
-    }
-    if (!lang) {
-        var message = 'language ' + opt.language + ' is unsupported, use one of those: ' + String (conf.supportedLangs);
-        finalize (new ArgEx (message));
+
+    if (conf.supportedLangs.indexOf(this.opt.language)) {
+        var message = 'language ' + this.opt.language + ' is unsupported, use one of those: ' + String(conf.supportedLangs);
+        this.finalize(new ArgEx(message));
         return;
     }
 
     // preparing variables
     //noinspection JSUnresolvedVariable
-    var dockerSharedDir = conf.dockerSharedDir;
-    var sessionDir = dockerSharedDir + "/" + opt.sessionId;
-    var containerPath = opt.language+"_img";
+    this.dockerSharedDir = conf.dockerSharedDir;
+    this.sessionDir = this.dockerSharedDir + "/" + this.opt.sessionId;
+    this.imageName = this.opt.language + "_img";
 
-    var dockerExecutor = new DockerExecutor(opt.sessionId, containerPath);
+    this.dockerExecutor = new DockerExecutor(this.opt.sessionId, this.imageName);
 
-    // preparing shared files
+    var _this = this;
+
     try {
+        this.createSharedDirectory(function () {
 
-        log.info('Preparing shared filesystem tree');
+            _this.putCodeIntoDirectory(function () {
 
-        mkdirp(sessionDir + '/input', function (err) {
-            if (err) {
-                log.info('troubles with creating Testing Session directory');
-                log.error(err);
-            } else {
-                log.info('Testing Session directory successfully created');
-                log.info('SElinux security fix for shared folder');
-                cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
-                    if (err) {
-                        log.error('Cannot fix SElinux access >> ', err);
-                    }
-                    log.info('Write code to file on Docker');
-                    fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
-                        if (err) {
-                            log.error("Error writing code file", err);
-                            return cb (err);
-                        }
+                _this.compileCode(function () {
 
-                log.info('Starting to run the user code');
-
-                        try {
-                            executionEntry();
-                        } catch (e) {
-                            log.error('Error when execute user code ', e);
-                            finalize(e);
-                        }
-
+                    _this.runTestCases(function () {
+                        _this.finalize();
                     });
                 });
+
+            });
+        });
+    } catch (e) {
+        log.error(e);
+        this.finalize(e);
+    }
+
+};
+
+DockerRunner.prototype.putCodeIntoDirectory = function (callback) {
+    var _this = this;
+    fs.writeFile(_this.sessionDir + "/input/code", _this.opt.code, function (err) {
+        if (err) {
+            throw Error('Cannot write code to docker shared file', err);
+        }
+
+        log.info('User code has moved to file successful');
+
+        callback.call(_this);
+    });
+};
+
+DockerRunner.prototype.createSharedDirectory = function (callback) {
+    var _this = this;
+    mkdirp(_this.sessionDir + '/input', function (err) {
+
+        if (err) {
+            throw Error('Cannot create session directory', err);
+        }
+
+        log.info('Session directory created successful');
+
+        callback.call(_this);
+    });
+};
+
+DockerRunner.prototype.compileCode = function (callback) {
+    var _this = this;
+    _this.dockerExecutor.startCompile(function (err, stdout, stderr) {
+
+        log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
+
+        if (err || stderr) {
+            response.compilerErrors = stderr || '';
+            throw Error(err || stderr);
+        }
+
+        callback.call(_this);
+    });
+};
+
+DockerRunner.prototype.runTestCases = function (callback) {
+
+    var _this = this;
+
+    // used for sync behaviour
+    var caseData = {
+        timeoutId: null,
+        lastCaseStart: 0,
+        caseIdx: 0,
+        caseLimit: _this.opt.testCases.length
+    };
+
+
+    // testcase callback function
+    var testCallback = function (err, stdout, stderr) {
+        log.info("testcase callback called with the following params: ", err || 'null', stdout || 'null', stderr || 'null');
+        var time = (new Date()).getTime();
+        if (stderr.substr(0, 7) == "WARNING")
+            stderr = "";
+
+        if (err) {
+            log.error("testcase called with the following error: ", err);
+            if ("" + err == "Error: stdout maxBuffer exceeded") {
+                stderr += "" + err;
+            } else if (err.code == 137) {
+                stderr += "Process killed by timeout.";
+            } else {
+                stderr += "" + err;
+            }
+        }
+
+        _this.response.stdout.push(stdout);
+        _this.response.stderr.push(stderr);
+        _this.response.timestamps.push(time - caseData.lastCaseStart);
+
+        if (caseData.timeoutId) {
+            clearTimeout(caseData.timeoutId);
+            caseData.timeoutId = null;
+        }
+
+        if (caseData.caseIdx >= _this.opt.testCases.length) {
+            callback.call(this);
+        } else {
+            runNextCase();
+        }
+    };
+
+    // prepare and execute testcases
+    function runNextCase () {
+        var testCase = _this.opt.testCases[caseData.caseIdx++];
+
+        // saving execution start time
+        caseData.lastCaseStart = (new Date()).getTime();
+
+        // executing testcase
+        _this.dockerExecutor.runTestCase(testCase, testCallback);
+
+    }
+
+    runNextCase();
+};
+
+DockerRunner.prototype.finalize = function (err) {
+    // logging errors
+    if (err) {
+        log.error('Finalizing with the following Error: ', err);
+    }
+
+    // delete temporary folders
+    this.deleteFolderRecursive(this.sessionDir);
+
+    // call callback function
+    if (this.opt.callback) {
+        this.opt.callback(err, {sessionId: this.opt.sessionId, response: this.response});
+    } else {
+        log.error('No callback for task');
+    }
+
+};
+
+DockerRunner.prototype.deleteFolderRecursive = function (path) {
+    var _this = this;
+    if (fs.existsSync(path)) {
+        fs.readdirSync(path).forEach(function (file) {
+            var curPath = path + "/" + file;
+            if (fs.lstatSync(curPath).isDirectory()) { // recurse
+                _this.deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
             }
         });
-
-        // try {
-        //     fs.accessSync(dockerSharedDir, fs.R_OK);
-        // } catch (e) {
-        //     log.info('Docker shared dir does not exist. Attempting to create.');
-        //     fs.mkdirSync(dockerSharedDir);
-        // }
-
-        // try {
-        //     fs.accessSync(sessionDir, fs.R_OK);
-        // } catch (e) {
-        //     log.info('Shared session dir does not exist. Attempting to create.');
-        //     fs.mkdirSync(sessionDir);
-        //     fs.mkdirSync(sessionDir + '/input');
-        // }
-
-
-    } catch (e) {
-        log.error('Shared filesystem preparation error ', e);
-        finalize(e);
+        fs.rmdirSync(path);
     }
-
-    //
-    function executionEntry() {
-        // preparing compilation command and callback
-        var compileCallback = function (err, stdout, stderr) {
-
-            log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
-
-            if (err) {
-                finalize (err);
-                /** @TODO Here is a trouble about compiling the code so we should parse it and if it's any
-                 * docker error we should send message to the admin */
-                return;
-            }
-            /** @TODO remove (stderr.substr(0,7)!="WARNING") */
-            if (stderr && (stderr.substr(0,7)!="WARNING")) {
-                response.compilerErrors = stderr;
-                finalize ();
-            } else {
-                log.info('Code compiled');
-                runTestCases ();
-            }
-        };
-        // execute compilation process
-        log.info("Starting to compile");
-
-        try {
-            dockerExecutor.startCompile(compileCallback);
-        } catch (e) {
-            log.error('Error trying to run docker container', e);
-        }
-
-    }
-
-    // single test case execution function
-    function runTestCases () {
-        // used for sync behaviour
-        var caseData = {
-            timeoutId: null,
-            lastCaseStart: 0,
-            caseIdx: 0,
-            caseLimit: opt.testCases.length
-        };
-
-
-        // testcase callback function
-        var testCallback = function (err, stdout, stderr) {
-            log.info ("testcase callback called with the following params: ", err || 'null', stdout || 'null', stderr || 'null');
-            var time = (new Date()).getTime();
-            if (stderr.substr (0, 7) == "WARNING")
-                stderr = "";
-
-            if (err) {
-                log.error("testcase called with the following error: ",err);
-                if(""+err=="Error: stdout maxBuffer exceeded"){
-                    stderr+=""+err;
-                } else if (err.code==137) {
-                    stderr+="Process killed by timeout.";
-                } else {
-                    stderr+=""+err;
-                }
-            }
-
-            response.stdout.push (stdout);
-            response.stderr.push (stderr);
-            response.timestamps.push (time - caseData.lastCaseStart);
-
-            if (caseData.timeoutId) {
-                clearTimeout(caseData.timeoutId);
-                caseData.timeoutId = null;
-            }
-
-            if (caseData.caseIdx >= opt.testCases.length) {
-                finalize ();
-            } else {
-                runNextCase ();
-            }
-        };
-
-        // prepare and execute testcases
-        function runNextCase () {
-            var testCase = opt.testCases[caseData.caseIdx++];
-
-            // saving execution start time
-            caseData.lastCaseStart = (new Date()).getTime();
-
-            // executing testcase
-            dockerExecutor.runTestCase(testCase, testCallback);
-
-        }
-
-        runNextCase ();
-    }
-
-    // function to finalize testing from callback
-    function finalize (err) {
-
-        // logging errors
-        if (err) {
-            log.error('Finalizing with the following Error: ', err);
-        }
-
-        // delete temporary folders
-        deleteFolderRecursive(sessionDir);
-
-        // call callback function
-        if (opt.callback) {
-            opt.callback (err, {sessionId: opt.sessionId, response: response});
-        } else {
-            log.error ('No callback for task');
-        }
-
-    }
-
 };
 
 module.exports = DockerRunner;
