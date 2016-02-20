@@ -159,6 +159,7 @@ DockerRunner.prototype.run = function (options, cb) {
     function runTestCases () {
         // used for sync behaviour
         var caseData = {
+            lastCaseStart: 0,
             caseIdx: 0,
             caseLimit: opt.testCases.length
         };
@@ -170,7 +171,7 @@ DockerRunner.prototype.run = function (options, cb) {
         // testcase callback function
         var testCallback = function (err, stdout, stderr) {
             log.info ("testcase callback called with the following params: ", err || 'null', stdout || 'null', stderr || 'null');
-
+            var time = (new Date()).getTime();
             if (stderr.substr (0, 7) == "WARNING")
                 stderr = "";
 
@@ -187,7 +188,7 @@ DockerRunner.prototype.run = function (options, cb) {
 
             response.stdout.push (stdout);
             response.stderr.push (stderr);
-            response.timestamps.push (0);
+            response.timestamps.push (time - caseData.lastCaseStart);
 
             if (caseData.caseIdx >= opt.testCases.length) {
                 finalize ();
@@ -201,6 +202,10 @@ DockerRunner.prototype.run = function (options, cb) {
             var testCase = opt.testCases[caseData.caseIdx++];
             var piped = 'echo \"' + testCase + '\" | ' + command;
 
+            // saving execution start time
+            caseData.lastCaseStart = (new Date()).getTime();
+
+            // executing testcase
             cp.exec (piped, cpOptions, testCallback);
 
             var cmd = 'docker kill ' + opt.sessionId;
