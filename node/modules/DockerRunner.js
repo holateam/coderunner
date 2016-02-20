@@ -88,7 +88,7 @@ DockerRunner.prototype.run = function (options, cb) {
                 if (err) {
                     log.error('Cannot create directory for session >> ', err);
                 }
-                log info('SElinux security fix for shared folder');
+                log.info('SElinux security fix for shared folder');
                 cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
                     if (err) {
                         log.error('Cannot fix SElinux access >> ', err);
