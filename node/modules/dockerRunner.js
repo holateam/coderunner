@@ -4,6 +4,7 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var log = require('./logger');
 var DockerExecutor = require('./dockerExecutor');
+var queue = require("function-queue")();
 
 function DockerRunner () {
 
@@ -67,20 +68,18 @@ DockerRunner.prototype.run = function (options, cb) {
 
     var _this = this;
 
+
     try {
-        this.createSharedDirectory(function () {
 
-            _this.putCodeIntoDirectory(function () {
+        queue.push(this.createSharedDirectory.bind(this));
+        queue.push(this.putCodeIntoDirectory.bind(this));
+        queue.push(this.compileCode.bind(this));
+        queue.push(this.runTestCases.bind(this));
 
-                _this.compileCode(function () {
-
-                    _this.runTestCases(function () {
-                        _this.finalize();
-                    });
-                });
-
-            });
+        queue.push(function () {
+            _this.finalize();
         });
+
     } catch (e) {
         log.error(e);
         this.finalize(e);
