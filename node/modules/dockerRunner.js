@@ -4,16 +4,11 @@ var cp = require ('child_process');
 var fs = require ('fs');
 var mkdirp = require('mkdirp');
 var log = require('./logger');
-
-var cpOptions = {
-    encoding: 'utf8',
-    //timeout: parseInt(conf.userQuotes.taskLifetime) * 1000,
-    killSignal: 'SIGKILL'
-};
+var DockerExecutor = require('./dockerExecutor');
 
 var deleteFolderRecursive = function(path) {
     if( fs.existsSync(path) ) {
-        fs.readdirSync(path).forEach(function(file,index){
+        fs.readdirSync(path).forEach(function(file){
             var curPath = path + "/" + file;
             if(fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolderRecursive(curPath);
@@ -86,14 +81,12 @@ DockerRunner.prototype.run = function (options, cb) {
     }
 
     // preparing variables
+    //noinspection JSUnresolvedVariable
     var dockerSharedDir = conf.dockerSharedDir;
     var sessionDir = dockerSharedDir + "/" + opt.sessionId;
-    var cpu_param = '0';
-    for (var i = 1; i < parseInt(conf.userQuotes.dockerMaxCores); i++) {
-        cpu_param += ', ' + i;
-    }
-    var params = '--name=' + opt.sessionId + ' -m '+conf.userQuotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath = opt.language+"_img";
+
+    var dockerExecutor = new DockerExecutor(opt.sessionId, containerPath);
 
     // preparing shared files
     try {
@@ -156,8 +149,6 @@ DockerRunner.prototype.run = function (options, cb) {
     //
     function executionEntry() {
         // preparing compilation command and callback
-        var compileCommand = 'docker run ' + params + ' ' + containerPath + ' startcompile';
-
         var compileCallback = function (err, stdout, stderr) {
 
             log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
@@ -178,12 +169,12 @@ DockerRunner.prototype.run = function (options, cb) {
             }
         };
         // execute compilation process
-        log.info("Running docker container: ", compileCommand);
+        log.info("Starting to compile");
 
         try {
-            cp.exec (compileCommand, cpOptions, compileCallback);
+            dockerExecutor.startCompile(compileCallback);
         } catch (e) {
-            log.error('Error trying to run docker container');
+            log.error('Error trying to run docker container', e);
         }
 
     }
@@ -198,9 +189,6 @@ DockerRunner.prototype.run = function (options, cb) {
             caseLimit: opt.testCases.length
         };
 
-        // var params = '--net none -i --rm -m 128MB -v ' + sessionDir + ':/opt/data';
-        params += ' --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' ' + containerPath + ' start';
 
         // testcase callback function
         var testCallback = function (err, stdout, stderr) {
@@ -240,21 +228,12 @@ DockerRunner.prototype.run = function (options, cb) {
         function runNextCase () {
             var testCase = opt.testCases[caseData.caseIdx++];
 
-            var piped = 'echo -e \"' + testCase.replace(/\n/g, "\\n") + '\" | ' + command;
-
-            log.info('Piped command to run testcase: '+piped);
             // saving execution start time
             caseData.lastCaseStart = (new Date()).getTime();
 
             // executing testcase
-            cp.exec (piped, cpOptions, testCallback);
+            dockerExecutor.runTestCase(testCase, testCallback);
 
-            var cmd = 'docker kill ' + opt.sessionId;
-            //noinspection JSUnresolvedVariable
-            caseData.timeoutId = setTimeout (function () {
-                cp.exec (cmd);
-                log.info("Time is out. Kill container: ", cmd);
-            }, parseInt(conf.userQuotes.taskLifetime) * 1000);
         }
 
         runNextCase ();
