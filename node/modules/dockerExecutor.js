@@ -23,7 +23,8 @@ function DockerExecutor (sessionId, imageName) {
 
     this.sessionId = sessionId;
     this.imageName = imageName;
-    this.timeout = 2000;
+    //noinspection JSUnresolvedVariable
+    this.timeout = config.userQuotes.taskLifetime * 1000;
 }
 
 DockerExecutor.prototype.runTestCase = function (testCase, callback) {
@@ -44,6 +45,14 @@ DockerExecutor.prototype.runTestCase = function (testCase, callback) {
 
     this.run(execCommand, callback);
 
+};
+
+DockerExecutor.prototype.kill = function () {
+    log.info('DockerExecutor do kill');
+    var executeCommand = this.templates().kill
+        .replace('{sessionId}', this.getSessionId());
+
+    this.run(executeCommand, null);
 };
 
 DockerExecutor.prototype.startCompile = function (callback) {
@@ -88,14 +97,16 @@ DockerExecutor.prototype.templates = function () {
     return {
         /** @ToDo move /opt/data to config */
         'compile': 'docker run --name={sessionId} -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data {imageName} startcompile',
-        'runTestCase': 'echo \"{testCase}\" | docker run --name={sessionId} -i -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start'
-
+        'runTestCase': 'echo \"{testCase}\" | docker run --name={sessionId} -i -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start',
+        'kill': 'docker kill {sessionId}'
     }
 };
 
 DockerExecutor.prototype.run = function (command, callback) {
 
-    log.info('DockerExecutor run called', command);
+    var _this = this;
+
+    log.info('DockerExecutor run command >> ', command);
 
     var called = false;
 
@@ -105,8 +116,10 @@ DockerExecutor.prototype.run = function (command, callback) {
             return;
         }
         called = true;
-        log.info('DockerExecutor call callback, args >> ', arguments);
-        callback.apply(this, arguments);
+        if (callback) {
+            log.info('DockerExecutor call callback, args >> ', arguments);
+            callback.apply(this, arguments);
+        }
     };
 
     var onTimeout = function () {
@@ -115,7 +128,11 @@ DockerExecutor.prototype.run = function (command, callback) {
             return;
         }
         called = true;
-        callback.apply(this, [null, null, null]);
+        if (callback) {
+            callback.apply(this, ['Time is out of running command >> ' + command, '', '']);
+        }
+
+        _this.kill();
 
         /** @ToDo kill container */
     };
