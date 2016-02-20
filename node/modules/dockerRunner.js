@@ -198,7 +198,7 @@ DockerRunner.prototype.finalize = function (err) {
     }
 
     // delete temporary folders
-    //this.deleteFolderRecursive(this.sessionDir);
+    this.deleteFolderRecursive(this.sessionDir);
 
     // call callback function
     if (this.opt.callback) {
