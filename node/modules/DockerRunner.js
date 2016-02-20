@@ -74,7 +74,7 @@ DockerRunner.prototype.run = function (options, cb) {
         cpu_param += ', ' + i;
     }
     //noinspection JSUnresolvedVariable
-    var params          = '-m '+conf.userQuotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
+    var params          = '--name=' + opt.sessionId + ' -m '+conf.userQuotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath   = opt.language+"_img";
 
     // preparing shared files
@@ -88,6 +88,12 @@ DockerRunner.prototype.run = function (options, cb) {
                 if (err) {
                     log.error('Cannot create directory for session >> ', err);
                 }
+                log info('SElinux security fix for shared folder');
+                cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
+                    if (err) {
+                        log.error('Cannot fix SElinux access >> ', err);
+                    }
+                });
                 log.info('Write code to file on Docker');
                 try {
                     fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
@@ -157,7 +163,7 @@ DockerRunner.prototype.run = function (options, cb) {
             caseLimit: opt.testCases.length
         };
 
-        var params = '--net none -i --rm -m 128MB -v ' + sessionDir + ':/opt/data';
+        // var params = '--net none -i --rm -m 128MB -v ' + sessionDir + ':/opt/data';
         params += ' --log-driver=json-file --log-opt max-size=1k ';
         var command = 'docker run ' + params + ' --name=' + opt.sessionId + ' ' + containerPath + ' start';
 
