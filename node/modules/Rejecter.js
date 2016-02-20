@@ -38,6 +38,13 @@ Rejecter.prototype.updateOverflow = function(userId, end) {
 	console.log('updated:', this.users[userId].overflows[idx].start, this.users[userId].overflows[idx].end);
 };
 
+Rejecter.prototype.clearUseless = function(userId, lastUsefullId) {
+	var limit = parseInt(lastUsefullId) || 0;
+	for (var i = 0; i < lastUsefullId; i++) {
+		this.users[userId].shift;
+	}
+};
+
 Rejecter.prototype.isRequestAllowed = function(userId) {
 
 	this.registerUser(userId);
@@ -56,6 +63,7 @@ Rejecter.prototype.isRequestAllowed = function(userId) {
         delay = currentRequest.time - userRequests[i].time;
 		// console.log('delay:', delay);
 		if (delay >= this.timeCap) {
+			this.clearUseless();
 			break;
 		} else {
 			amount++;
@@ -88,6 +96,12 @@ Rejecter.prototype.isRequestAllowed = function(userId) {
 
 			var overflow = this.getOverflow(userId, o);
 			var timePassed = currentRequest.time - overflow.end;
+
+			if (timePassed >= parseInt(conf.relaxTime)) {
+				this.users[userId].overflows.shift();
+				o--;
+			}
+
 			// console.log('time passed:', timePassed);
 			var duration = (overflow.end - overflow.start) / 1000;
 			// console.log('duration:', duration);

@@ -4,10 +4,10 @@
   "taskQueueLimit": 100,
   "MaxWorkingTaskNumber": 10,
   "requestAnalyticsTime": 60000,
-  "dockerLogsLines": 50,
-  "dockerLogsLineBytes": 256,
-  "docketSharedDir": "~/Desktop",
-  "dockerDir": "../docker",
+  "relaxTime": 864000000,
+  "dockerLogsLength": 1500,
+  "dockerSharedDir": "/home/vagrant/dockerShared",
+  "dockerDir": "/home/vagrant/coderunner/docker",
   "serverSecret": "key",
   "supportedLangs": [
     "cpp"
@@ -20,6 +20,7 @@
   "quotes": {
     "maxTestCases": 2,
     "tasksPerMinute": 10,
+    "patience": 5,
     "rageCoefficient": 1.5,
     "codeLength": 1500,
     "dockerMinMemory": 128,
