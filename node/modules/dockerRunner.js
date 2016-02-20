@@ -2,6 +2,7 @@ var conf = require ('./../config.json') || {supportedLangs: []};
 var ArgEx = require ('./exceptions/illegalarg').IllegalArgumentException;
 var cp = require ('child_process');
 var fs = require ('fs');
+var mkdirp = require('mkdirp');
 var log = require('./logger');
 
 var cpOptions = {
@@ -53,15 +54,19 @@ DockerRunner.prototype.run = function (options, cb) {
     // validate parameters
     if (!opt.sessionId) {
         finalize (new ArgEx ('options.sessionId must be defined'));
+        return;
     }
     if (!opt.code) {
         finalize (new ArgEx ('options.code must be defined'));
+        return;
     }
     if (!opt.language) {
         finalize (new ArgEx ('options.language must be defined'));
+        return;
     }
     if (!opt.testCases) {
         finalize (new ArgEx ('options.testCases must be defined'));
+        return;
     }
 
     var lang = null;
@@ -77,6 +82,7 @@ DockerRunner.prototype.run = function (options, cb) {
     if (!lang) {
         var message = 'language ' + opt.language + ' is unsupported, use one of those: ' + String (conf.supportedLangs);
         finalize (new ArgEx (message));
+        return;
     }
 
     // preparing variables
@@ -94,44 +100,53 @@ DockerRunner.prototype.run = function (options, cb) {
 
         log.info('Preparing shared filesystem tree');
 
-        try {
-            fs.access(dockerSharedDir, fs.R_OK);
-        } catch (e) {
-            log.info('Docker shared dir does not exist. Attempting to create.');
-            fs.mkdirSync(dockerSharedDir);
-        }
-
-        try {
-            fs.access(sessionDir, fs.R_OK);
-        } catch (e) {
-            log.info('Shared session dir does not exist. Attempting to create.');
-            fs.mkdirSync(sessionDir);
-            fs.mkdirSync(sessionDir + '/input');
-        }
-
-        log.info('SElinux security fix for shared folder');
-        cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
+        mkdirp(sessionDir + '/input', function (err) {
             if (err) {
-                log.error('Cannot fix SElinux access >> ', err);
-            }
-            log.info('Write code to file on Docker');
-            fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
-                if (err) {
-                    log.error("Error writing code file", err);
-                    return cb (err);
-                }
+                log.info('troubles with creating Testing Session directory');
+                log.error(err);
+            } else {
+                log.info('Testing Session directory successfully created');
+                log.info('SElinux security fix for shared folder');
+                cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
+                    if (err) {
+                        log.error('Cannot fix SElinux access >> ', err);
+                    }
+                    log.info('Write code to file on Docker');
+                    fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
+                        if (err) {
+                            log.error("Error writing code file", err);
+                            return cb (err);
+                        }
 
                 log.info('Starting to run the user code');
 
-                try {
-                    executionEntry();
-                } catch (e) {
-                    log.error('Error when execute user code ', e);
-                    finalize(e);
-                }
+                        try {
+                            executionEntry();
+                        } catch (e) {
+                            log.error('Error when execute user code ', e);
+                            finalize(e);
+                        }
 
-            });
+                    });
+                });
+            }
         });
+
+        // try {
+        //     fs.accessSync(dockerSharedDir, fs.R_OK);
+        // } catch (e) {
+        //     log.info('Docker shared dir does not exist. Attempting to create.');
+        //     fs.mkdirSync(dockerSharedDir);
+        // }
+
+        // try {
+        //     fs.accessSync(sessionDir, fs.R_OK);
+        // } catch (e) {
+        //     log.info('Shared session dir does not exist. Attempting to create.');
+        //     fs.mkdirSync(sessionDir);
+        //     fs.mkdirSync(sessionDir + '/input');
+        // }
+
 
     } catch (e) {
         log.error('Shared filesystem preparation error ', e);
@@ -185,7 +200,7 @@ DockerRunner.prototype.run = function (options, cb) {
 
         // var params = '--net none -i --rm -m 128MB -v ' + sessionDir + ':/opt/data';
         params += ' --log-driver=json-file --log-opt max-size=1k ';
-        var command = 'docker run ' + params + ' --name=' + opt.sessionId + ' ' + containerPath + ' start';
+        var command = 'docker run ' + params + ' ' + containerPath + ' start';
 
         // testcase callback function
         var testCallback = function (err, stdout, stderr) {
@@ -224,8 +239,10 @@ DockerRunner.prototype.run = function (options, cb) {
         // prepare and execute testcases
         function runNextCase () {
             var testCase = opt.testCases[caseData.caseIdx++];
-            var piped = 'echo \"' + testCase + '\" | ' + command;
 
+            var piped = 'echo -e \"' + testCase.replace(/\n/g, "\\n") + '\" | ' + command;
+
+            log.info('Piped command to run testcase: '+piped);
             // saving execution start time
             caseData.lastCaseStart = (new Date()).getTime();
 
@@ -265,5 +282,4 @@ DockerRunner.prototype.run = function (options, cb) {
 
 };
 
-exports.DockerRunner = DockerRunner;
 module.exports = DockerRunner;

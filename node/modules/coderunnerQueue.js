@@ -10,7 +10,7 @@ function RunnerQueue () {
 
     // remove this when all tests are finished
     //var DockerRunner = require('./testExec3');
-    var DockerRunner = require ('./DockerRunner');
+    var DockerRunner = require ('./dockerRunner');
     this.dockerRunner = new DockerRunner ();
 
     var config = require ('../config.json');
@@ -45,10 +45,9 @@ RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFuncti
         callbackFunction (err, answerObj);
     };
 
-    //this.arrWorkingTasks.push ({task: taskObj, cb: callbackFunction});
+    console.log ("Task sent to docker-manager", taskObj);
     this.dockerRunner.run (taskObj, returnFunc);
     this.workingTasksCounter++;
-    console.log ("Task sent to docker-manager", taskObj);
 };
 
 // remove this when all tests are finished

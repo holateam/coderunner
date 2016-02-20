@@ -1,9 +1,7 @@
 #!/bin/bash
-cd /opt/data/input
-if [ -x runner ];
+if [ -x /opt/data/input/runner ]
 then
-    ./runner
+    /opt/data/input/runner
 else
     echo "No compiled file"
 fi
-
