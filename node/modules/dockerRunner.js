@@ -132,64 +132,22 @@ DockerRunner.prototype.compileCode = function (callback) {
 
 DockerRunner.prototype.runTestCases = function (callback) {
 
+    var TestCasesRunner = require('./TestCasesRunner');
+    var testCasesRunner = new TestCasesRunner();
+    testCasesRunner.setTestCases(this.opt.testCases);
+
     var _this = this;
 
-    // used for sync behaviour
-    var caseData = {
-        timeoutId: null,
-        lastCaseStart: 0,
-        caseIdx: 0,
-        caseLimit: _this.opt.testCases.length
-    };
+    testCasesRunner.run(this.dockerExecutor, function (response) {
+        //if(err) {
+        //    throw Error(err);
+        //}
 
+        _this.response = response;
+        callback.call();
 
-    // testcase callback function
-    var testCallback = function (err, stdout, stderr) {
-        log.info("testcase callback called with the following params: ", err || 'null', stdout || 'null', stderr || 'null');
-        var time = (new Date()).getTime();
-        if (stderr.substr(0, 7) == "WARNING")
-            stderr = "";
+    });
 
-        if (err) {
-            log.error("testcase called with the following error: ", err);
-            if ("" + err == "Error: stdout maxBuffer exceeded") {
-                stderr += "" + err;
-            } else if (err.code == 137) {
-                stderr += "Process killed by timeout.";
-            } else {
-                stderr += "" + err;
-            }
-        }
-
-        _this.response.stdout.push(stdout);
-        _this.response.stderr.push(stderr);
-        _this.response.timestamps.push(time - caseData.lastCaseStart);
-
-        if (caseData.timeoutId) {
-            clearTimeout(caseData.timeoutId);
-            caseData.timeoutId = null;
-        }
-
-        if (caseData.caseIdx >= _this.opt.testCases.length) {
-            callback.call(this);
-        } else {
-            runNextCase();
-        }
-    };
-
-    // prepare and execute testcases
-    function runNextCase () {
-        var testCase = _this.opt.testCases[caseData.caseIdx++];
-
-        // saving execution start time
-        caseData.lastCaseStart = (new Date()).getTime();
-
-        // executing testcase
-        _this.dockerExecutor.runTestCase(testCase, testCallback);
-
-    }
-
-    runNextCase();
 };
 
 DockerRunner.prototype.finalize = function (err) {
