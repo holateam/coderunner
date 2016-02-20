@@ -120,8 +120,8 @@ DockerRunner.prototype.compileCode = function (callback) {
 
         log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
 
-        if (err || stderr) {
-            response.compilerErrors = stderr || '';
+        if (err || (stderr && (stderr != "WARNING: Your kernel does not support swap limit capabilities, memory limited without swap.\n"))) {
+            _this.response.compilerErrors = stderr || '';
             throw Error(err || stderr);
         }
 
@@ -198,7 +198,7 @@ DockerRunner.prototype.finalize = function (err) {
     }
 
     // delete temporary folders
-    this.deleteFolderRecursive(this.sessionDir);
+    //this.deleteFolderRecursive(this.sessionDir);
 
     // call callback function
     if (this.opt.callback) {

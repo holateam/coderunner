@@ -88,7 +88,7 @@ DockerExecutor.prototype.templates = function () {
     return {
         /** @ToDo move /opt/data to config */
         'compile': 'docker run --name={sessionId} -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data {imageName} startcompile',
-        'runTestCase': 'echo -e \"{testCase}\" | docker run --name={sessionId} -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start'
+        'runTestCase': 'echo \"{testCase}\" | docker run --name={sessionId} -i -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start'
 
     }
 };
