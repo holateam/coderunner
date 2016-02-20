@@ -76,8 +76,9 @@ DockerRunner.prototype.run = function (options, cb) {
         queue.push(this.compileCode.bind(this));
         queue.push(this.runTestCases.bind(this));
 
-        queue.push(function () {
+        queue.push(function (cb) {
             _this.finalize();
+            cb();
         });
 
     } catch (e) {
