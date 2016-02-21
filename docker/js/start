@@ -1,9 +1,9 @@
-cd /"$1"/input
-if [ -f code ];
+#!/bin/bash
+cd /opt/data/input/
+if [ -f code ]
 then
     mv code code.js
     node code.js
 else
-    echo "No source file" > logCompile
+    echo "No file to run" 1>&2
 fi
-

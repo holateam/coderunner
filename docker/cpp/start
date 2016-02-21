@@ -3,5 +3,5 @@ if [ -x /opt/data/input/runner ]
 then
     /opt/data/input/runner
 else
-    echo "No compiled file"
+    echo "No compiled file" 1>&2
 fi
