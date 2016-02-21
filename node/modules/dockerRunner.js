@@ -52,8 +52,9 @@ DockerRunner.prototype.run = function (options, cb) {
 
     log.info('Checking language support');
 
-    if (conf.supportedLangs.indexOf(this.opt.language)) {
+    if (conf.supportedLangs.indexOf(this.opt.language) == -1) {
         var message = 'language ' + this.opt.language + ' is unsupported, use one of those: ' + String(conf.supportedLangs);
+        console.log("sup", conf.supportedLangs);
         this.finalize(new ArgEx(message));
         return;
     }

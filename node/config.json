@@ -10,10 +10,11 @@
   "dockerDir": "/home/vagrant/coderunner/docker",
   "serverSecret": "key",
   "supportedLangs": [
-    "cpp"
+    "cpp",
+    "java"
   ],
   "userQuotes": {
-    "taskLifetime": 3,
+    "taskLifetime": 30,
     "dockerMaxCores": 1,
     "dockerMaxMemory": 512
   },

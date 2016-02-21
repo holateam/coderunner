@@ -139,8 +139,7 @@ DockerExecutor.prototype.run = function (command, callback) {
 
     cp.exec(command, cpOptions, prepareCallback);
 
-    setTimeout(onTimeout, this.timeout);
-
+    setTimeout(onTimeout, this.timeout*2);
 };
 
 module.exports = DockerExecutor;

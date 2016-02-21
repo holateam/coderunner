@@ -1,7 +1,8 @@
 var config = require('../config.json');
 
 function javaValidator(soursecode) {
-    return stub(soursecode.language);
+    return sendResult([]);
+        //stub(soursecode.language);
 }
 
 function cppValidator(soursecode) {
