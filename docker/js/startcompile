@@ -1,1 +1,3 @@
 #!/bin/bash
+cd /opt/data/input
+mv code code.js
