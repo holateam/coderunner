@@ -1,5 +1,4 @@
 #!/bin/bash
-cd 
 if [ -f /opt/data/input/code.class ]
 then
     java /opt/data/input/code
