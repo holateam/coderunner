@@ -96,8 +96,8 @@ DockerExecutor.prototype.getImageName = function () {
 DockerExecutor.prototype.templates = function () {
     return {
         /** @ToDo move /opt/data to config */
-        'compile': 'docker run --name={sessionId} -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data {imageName} startcompile',
-        'runTestCase': 'echo \"{testCase}\" | docker run --name={sessionId} -i -m {dockerMaxMemory}m --cpuset-cpus {dockerCpuSet} --net none --rm -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start',
+        'compile': 'docker run --name={sessionId} -m {dockerMaxMemory}m --net none --rm -v {sharedDir}:/opt/data {imageName} startcompile',
+        'runTestCase': 'echo \"{testCase}\" | docker run --name={sessionId} -i -m {dockerMaxMemory}m --net none --rm -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start',
         'kill': 'docker kill {sessionId}'
     }
 };
