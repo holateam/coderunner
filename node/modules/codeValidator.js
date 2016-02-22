@@ -33,7 +33,8 @@ function phpValidator(soursecode) {
 }
 
 function nodeValidator(soursecode) {
-    return stub(soursecode.language);
+    return sendResult([]);
+    //return stub(soursecode.language);
 }
 
 function pythonValidator(soursecode) {
@@ -54,7 +55,8 @@ function validate(sourceData) {
         return cppValidator(sourceData);
     } if (sourceData.language.toLowerCase() == 'php') {
         return phpValidator(sourceData);
-    } if (sourceData.language.toLowerCase() == 'node') {
+    }
+    if (sourceData.language.toLowerCase() == 'js') {
         return nodeValidator(sourceData);
     } if (sourceData.language.toLowerCase() == 'python') {
         return pythonValidator(sourceData);

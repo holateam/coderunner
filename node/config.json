@@ -11,7 +11,8 @@
   "serverSecret": "key",
   "supportedLangs": [
     "cpp",
-    "java"
+    "java",
+    "js"
   ],
   "userQuotes": {
     "taskLifetime": 30,
