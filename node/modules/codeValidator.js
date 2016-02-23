@@ -1,67 +1,55 @@
 var config = require('../config.json');
 
-function javaValidator(soursecode) {
-    return sendResult([]);
-        //stub(soursecode.language);
-}
-
-function cppValidator(soursecode) {
-    var log = [];
-    var regExp_asm = /(\b|\u005F{2}|\b\u005F)(asm)(\b|\u005F{2})/; // pattern for find inline assembly (asm, _asm, __asm, __asm__)
-    if(soursecode.code.search(regExp_asm) != -1) {
-        addLog(log, 3, "asm", "Not allowed to use");
-    }
-    var pos, end_pos; // start and finish position of searching string
-    var regPattern = /(\n|^)\s*\u0023(.+)(\n|$)/;  //pattern for string that starts with any number of whitespace and contains any number of any symbols enclosed between '#' and '\n'
-    var end = /(\n|$)/; //end of pattern string that starts with '#'
-    var code = soursecode.code;
-    while ((pos = code.search(regPattern)) != -1) {
-        code = code.substr(pos);
-        end_pos = code.search(end);
-        var pattern = code.substr(0, end_pos);
-        if (pattern.trim() && !config.quotes.includes.acceptedCpp[pattern.replace(/\s/g,'')]) {
-            addLog(log, 2, pattern.trim(), "Not allowed to use");
-        }
-        code = code.substr(end_pos + 1);
-    }
+function javaValidator(sourcecode, log) {
+    var regPattern = /\b(import)\b[^;]*/;  //pattern for substring that starts with 'import' and end with ';'
+    var endPattern = /;/; //end of pattern substring that starts with 'import'
+    checkForbidenLibs(log, regPattern, endPattern, sourcecode.code, "acceptedJava");
+    var regExp_Class = /\b(Class)\b/g; // pattern for find 'Class'
+    findForbidenCode(sourcecode.code, regExp_Class, log, "Class");
 
     return sendResult(log);
 }
 
-function phpValidator(soursecode) {
+function cppValidator(soursecode, log) {
+    var regPattern = /(\n|^)\s*\u0023(.+)(\n|$)/;  //pattern for string that starts with any number of whitespace and contains any number of any symbols enclosed between '#' and '\n'
+    var endPattern = /(\n|$)/; //end of pattern string that starts with '#'
+    checkForbidenLibs(log, regPattern, endPattern, sourcecode.code, "acceptedCpp");
+    var regExp_asm = /(\b|\u005F{2}|\b\u005F)(asm)(\b|\u005F{2})/; // pattern for find inline assembly (asm, _asm, __asm, __asm__)
+    findForbidenCode(sourcecode.code, regExp_asm, log, "asm");
+
+    return sendResult(log);
+}
+
+function phpValidator(soursecode, log) {
     return stub(soursecode.language);
 }
 
-function nodeValidator(soursecode) {
-    return sendResult([]);
-    //return stub(soursecode.language);
-}
-
-function pythonValidator(soursecode) {
+function nodeValidator(soursecode, log) {
     return stub(soursecode.language);
 }
 
+function pythonValidator(soursecode, log) {
+    return stub(soursecode.language);
+}
 
+function findForbidenCode (code, regExp, log, forbidenCode) {
+    if(code.search(regExp) != -1) {
+        addLog(log, 3, forbidenCode, "Not allowed to use");
+    }
+}
 
-function validate(sourceData) {
-    if (sourceData.code.length > config.quotes.codeLength) {
-        var logs = [];
-        addLog(logs, 1, "source code", "The characters limit exceeded");
-        return sendResult(logs);
+function checkForbidenLibs (log, regPattern, endPattern, sourcecode, includeProperty) {
+    var pos, end_pos; // start and finish position of searching string
+    var code = sourcecode;
+    while ((pos = code.search(regPattern)) != -1) {
+        code = code.substr(pos);
+        end_pos = code.search(endPattern);
+        var pattern = code.substr(0, end_pos);
+        if (pattern.trim() && !config.quotes.includes[includeProperty][pattern.replace(/\s/g,'')]) {
+            addLog(log, 2, pattern.trim(), "Not allowed to use");
+        }
+        code = code.substr(end_pos + 1);
     }
-    if (sourceData.language.toLowerCase() == 'java') {
-        return javaValidator(sourceData);
-    } else if (sourceData.language.toLowerCase() == 'cpp') {
-        return cppValidator(sourceData);
-    } if (sourceData.language.toLowerCase() == 'php') {
-        return phpValidator(sourceData);
-    }
-    if (sourceData.language.toLowerCase() == 'js') {
-        return nodeValidator(sourceData);
-    } if (sourceData.language.toLowerCase() == 'python') {
-        return pythonValidator(sourceData);
-    }
-    return false;
 }
 
 function addLog(logs, dl, text, comment) {
@@ -77,8 +65,30 @@ function  sendResult(logs) {
     }
 }
 
+function validate(sourceData) {
+    var logs = [];
+    if (sourceData.code.length > config.quotes.codeLength) {
+        addLog(logs, 1, "source code", "The characters limit exceeded");
+        return sendResult(logs);
+    }
+    if (sourceData.language.toLowerCase() == 'java') {
+        return javaValidator(sourceData, logs);
+    } else if (sourceData.language.toLowerCase() == 'cpp') {
+        return cppValidator(sourceData, logs);
+    } if (sourceData.language.toLowerCase() == 'php') {
+        return phpValidator(sourceData, logs);
+    } if (sourceData.language.toLowerCase() == 'node') {
+        return nodeValidator(sourceData, logs);
+    } if (sourceData.language.toLowerCase() == 'python') {
+        return pythonValidator(sourceData);
+    }
+    return false;
+}
+
+
 function  stub(lang) {
     return {validity: false, log: [{"danger-level": 1, "text": lang, "comment": "Sorry, this language is not supported yet"}]};
 }
+
 
 module.exports = validate;
