@@ -33,12 +33,6 @@
         "#include<stdlib.h>": true,
         "#include<string>": true,
         "#include<vector>": true
-      },
-      "acceptedJava": {
-        "importjava.io.BufferedReader": true,
-        "importjava.lang.String": true,
-        "importjava.io.IOException": true,
-        "importjava.util.Scanner": true
       }
     },
     "alarmObservers": [
