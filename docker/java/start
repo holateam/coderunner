@@ -1,21 +1,8 @@
-cd /"$1"/input
-if [ -f code.class ];
+#!/bin/bash
+cd /opt/data/input/
+if [ -f code.class ]
 then
     java code
 else
-    if [ -f code ];
-    then
-        mv code code.java
-        sed -i '0,/class \([a-zA-Z0-9\/_]\+\)/s//class code/' code.java
-        javac code.java
-        if [ $? = 0 ];
-        then
-            java code
-        else
-            echo "compiler error" >logCompile
-        fi
-    else
-        echo "No source file" >logCompile
-    fi
+    echo "No compiled file" 1>&2
 fi
-

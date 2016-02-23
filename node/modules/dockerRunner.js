@@ -52,9 +52,9 @@ DockerRunner.prototype.run = function (options, cb) {
 
     log.info('Checking language support');
 
-    if (conf.supportedLangs.indexOf(this.opt.language)) {
+    if (conf.supportedLangs.indexOf(this.opt.language) == -1) {
         var message = 'language ' + this.opt.language + ' is unsupported, use one of those: ' + String(conf.supportedLangs);
-        throw new ArgEx(message);
+        throw new ArgEx(message)
     }
 
     // preparing variables
@@ -183,7 +183,7 @@ DockerRunner.prototype.finalize = function (err) {
 DockerRunner.prototype.mergeResponse = function (response) {
     var _this = this;
     for (var property in response) {
-        if (response.hasOwnProperty(property) && this.response.hasOwnProperty(property)) {
+        if (response.hasOwnProperty(property) && _this.response.hasOwnProperty(property)) {
             this.response[property] = response[property];
         }
     }

@@ -1,3 +1,5 @@
 FROM centos
-COPY start /
-RUN yum update -y; yum install -y java-devel; yum clean all
+COPY start /usr/bin/
+COPY startcompile /usr/bin/
+# yum install -y java-devel
+RUN yum update -y; yum install -y java-1.7.0-openjdk-devel; yum clean all
