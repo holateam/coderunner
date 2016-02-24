@@ -78,9 +78,8 @@ DockerRunner.prototype.run = function (options, cb) {
     }
 
     // preparing variables
-    var pwd = fs.realpathSync('.');
-    log.info("pwd:", pwd);
-    var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
+    
+    var dockerSharedDir = conf.dockerSharedDir;
     var sessionDir = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
     //noinspection JSDuplicatedDeclaration,JSUnresolvedVariable
@@ -88,13 +87,26 @@ DockerRunner.prototype.run = function (options, cb) {
         cpu_param += ', ' + i;
     }
     //noinspection JSUnresolvedVariable
-    var params          = '--name=' + opt.sessionId + ' -m '+conf.userQuotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
-    var containerPath   = opt.language+"_img";
+    var params = '--name=' + opt.sessionId + ' -m '+conf.userQuotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
+    var containerPath = opt.language+"_img";
 
     // preparing shared files
     try {
-        fs.mkdirSync(sessionDir);
-        fs.mkdirSync(sessionDir + '/input');
+
+        log.info('Preparing shared filesystem tree');
+
+        fs.access(dockerSharedDir, fs.R_OK, (err) => {
+            fs.mkdirSync(dockerSharedDir);
+        });
+
+        fs.access(sessionDir, fs.R_OK, (err) => {
+            fs.mkdirSync(sessionDir);
+        });
+
+        fs.access(sessionDir + '/input', fs.R_OK, (err) => {
+            fs.mkdirSync(sessionDir + '/input');
+        });
+
         log.info('SElinux security fix for shared folder');
         cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
             if (err) {
@@ -117,42 +129,7 @@ DockerRunner.prototype.run = function (options, cb) {
 
             });
         });
-        // cp.exec ("mkdir " + dockerSharedDir, function (err) {
-        //     if(err) {
-        //         log.error('Cannot create dockerSharedDir >> ' , err);
-        //     }
-        //     cp.exec ("mkdir " + sessionDir + " " + sessionDir + "/input", function (err) {
-        //         if (err) {
-        //             log.error('Cannot create directory for session >> ', err);
-        //         }
-        //         log.info('SElinux security fix for shared folder');
-        //         cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
-        //             if (err) {
-        //                 log.error('Cannot fix SElinux access >> ', err);
-        //             }
-        //         });
-        //         log.info('Write code to file on Docker');
-        //         try {
-        //             fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
-        //                 if (err) {
-        //                     log.error("Error writing code file", err);
-        //                     return cb (err);
-        //                 }
 
-        //                 log.info('Starting to run the user code');
-
-        //                 try {
-        //                     executionEntry();
-        //                 } catch (e) {
-        //                     log.error('Error when execute user code ', e);
-        //                 }
-
-        //             });
-        //         } catch (e) {
-        //             log.error('Error trying to create file with user code ', e)
-        //         }
-        //     });
-        // });
     } catch (e) {
         log.error('Shared filesystem preparation error ', e);
     }

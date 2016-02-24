@@ -78,7 +78,7 @@ then
 	npm install
 	echo "---| info: starting CodeRunner service"
 	npm install -g forever forever-service
-	forever install -s $HOME/coderunner/node/server.js --start
+	forever-service install -s $HOME/coderunner/node/server.js --start
 	echo -e "---------------------------------------\n---| All preparetions done succsessfully. You need to restart Vagrant now.\n---| Exit Vagrant shell.\n---| Use $ vagrant halt to stop Vagrant\n---| Use vagrant up to start virtual machine"
 else
 	echo "---| error: troubles while clonning repository"
