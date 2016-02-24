@@ -97,16 +97,20 @@ DockerRunner.prototype.run = function (options, cb) {
 
         log.info('Preparing shared filesystem tree');
 
-        fs.access(dockerSharedDir, fs.R_OK, (err) => {
+        try {
+            fs.access(dockerSharedDir, fs.R_OK);
+        } catch (e) {
             log.info('Docker shared dir does not exist. Attempting to create.');
             fs.mkdirSync(dockerSharedDir);
-        });
+        }
 
-        fs.access(sessionDir, fs.R_OK, (err) => {
+        try {
+            fs.access(sessionDir, fs.R_OK);
+        } catch (e) {
             log.info('Shared session dir does not exist. Attempting to create.');
             fs.mkdirSync(sessionDir);
             fs.mkdirSync(sessionDir + '/input');
-        });
+        }
 
         log.info('SElinux security fix for shared folder');
         cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
@@ -126,6 +130,7 @@ DockerRunner.prototype.run = function (options, cb) {
                     executionEntry();
                 } catch (e) {
                     log.error('Error when execute user code ', e);
+                    finalize(e);
                 }
 
             });
@@ -133,6 +138,7 @@ DockerRunner.prototype.run = function (options, cb) {
 
     } catch (e) {
         log.error('Shared filesystem preparation error ', e);
+        finalize(e);
     }
 
     //
