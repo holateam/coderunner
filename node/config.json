@@ -6,8 +6,8 @@
   "requestAnalyticsTime": 60000,
   "dockerLogsLines": 50,
   "dockerLogsLineBytes": 256,
-  "dockerSharedDir": "$HOME/dockerShared",
-  "dockerDir": "$HOME/coderunner/docker",
+  "dockerSharedDir": "~/dockerShared",
+  "dockerDir": "~/coderunner/docker",
   "serverSecret": "key",
   "supportedLangs": [
     "cpp"
