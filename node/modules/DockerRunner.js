@@ -79,9 +79,7 @@ DockerRunner.prototype.run = function (options, cb) {
     }
 
     // preparing variables
-    
-    console.log(conf.dockerSharedDir);
-    var dockerSharedDir = fs.realpathSync(conf.dockerSharedDir);
+    var dockerSharedDir = conf.dockerSharedDir;
     var sessionDir = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
     for (var i = 1; i < parseInt(conf.userQuotes.dockerMaxCores); i++) {
