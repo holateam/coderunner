@@ -93,7 +93,6 @@ DockerRunner.prototype.run = function (options, cb) {
 
     // preparing shared files
     try {
-        fs.mkdirSync(dockerSharedDir);
         fs.mkdirSync(sessionDir);
         fs.mkdirSync(sessionDir + '/input');
         log.info('SElinux security fix for shared folder');
