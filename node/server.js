@@ -10,7 +10,6 @@ var Queue = require('./modules/coderunnerQueue');
 var queue = new Queue();
 
 
-
 // read configs to process.env
 env(__dirname + '/.env');
 

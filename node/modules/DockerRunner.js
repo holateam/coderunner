@@ -10,6 +10,20 @@ var cpOptions = {
     killSignal: 'SIGKILL'
 };
 
+var deleteFolderRecursive = function(path) {
+    if( fs.existsSync(path) ) {
+        fs.readdirSync(path).forEach(function(file,index){
+            var curPath = path + "/" + file;
+            if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(path);
+    }
+};
+
 function DockerRunner () {
 }
 
@@ -67,7 +81,7 @@ DockerRunner.prototype.run = function (options, cb) {
     var pwd = fs.realpathSync('.');
     log.info("pwd:", pwd);
     var dockerSharedDir = pwd+"/shared";//conf.dockerSharedDir;
-    var sessionDir      = dockerSharedDir + "/" + opt.sessionId;
+    var sessionDir = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
     //noinspection JSDuplicatedDeclaration,JSUnresolvedVariable
     for (var i = 1; i < conf.userQuotes.dockerMaxCores; i++) {
@@ -78,46 +92,70 @@ DockerRunner.prototype.run = function (options, cb) {
     var containerPath   = opt.language+"_img";
 
     // preparing shared files
-
     try {
-        cp.exec ("mkdir " + dockerSharedDir, function (err) {
-            if(err) {
-                log.error('Cannot create dockerSharedDir >> ' , err);
+        fs.mkdirSync(dockerSharedDir);
+        fs.mkdirSync(sessionDir);
+        fs.mkdirSync(sessionDir + '/input');
+        log.info('SElinux security fix for shared folder');
+        cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
+            if (err) {
+                log.error('Cannot fix SElinux access >> ', err);
             }
-            cp.exec ("mkdir " + sessionDir + " " + sessionDir + "/input", function (err) {
+            log.info('Write code to file on Docker');
+            fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
                 if (err) {
-                    log.error('Cannot create directory for session >> ', err);
+                    log.error("Error writing code file", err);
+                    return cb (err);
                 }
-                log.info('SElinux security fix for shared folder');
-                cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
-                    if (err) {
-                        log.error('Cannot fix SElinux access >> ', err);
-                    }
-                });
-                log.info('Write code to file on Docker');
+
+                log.info('Starting to run the user code');
+
                 try {
-                    fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
-                        if (err) {
-                            log.error("Error writing code file", err);
-                            return cb (err);
-                        }
-
-                        log.info('Starting to run the user code');
-
-                        try {
-                            executionEntry();
-                        } catch (e) {
-                            log.error('Error when execute user code ', e);
-                        }
-
-                    });
+                    executionEntry();
                 } catch (e) {
-                    log.error('Error trying to create file with user code ', e)
+                    log.error('Error when execute user code ', e);
                 }
+
             });
         });
+        // cp.exec ("mkdir " + dockerSharedDir, function (err) {
+        //     if(err) {
+        //         log.error('Cannot create dockerSharedDir >> ' , err);
+        //     }
+        //     cp.exec ("mkdir " + sessionDir + " " + sessionDir + "/input", function (err) {
+        //         if (err) {
+        //             log.error('Cannot create directory for session >> ', err);
+        //         }
+        //         log.info('SElinux security fix for shared folder');
+        //         cp.exec ("chcon -Rt svirt_sandbox_file_t " + sessionDir, function (err) {
+        //             if (err) {
+        //                 log.error('Cannot fix SElinux access >> ', err);
+        //             }
+        //         });
+        //         log.info('Write code to file on Docker');
+        //         try {
+        //             fs.writeFile (sessionDir + "/input/code", opt.code, function (err) {
+        //                 if (err) {
+        //                     log.error("Error writing code file", err);
+        //                     return cb (err);
+        //                 }
+
+        //                 log.info('Starting to run the user code');
+
+        //                 try {
+        //                     executionEntry();
+        //                 } catch (e) {
+        //                     log.error('Error when execute user code ', e);
+        //                 }
+
+        //             });
+        //         } catch (e) {
+        //             log.error('Error trying to create file with user code ', e)
+        //         }
+        //     });
+        // });
     } catch (e) {
-        log.error('Error trying to create user directories ', e);
+        log.error('Shared filesystem preparation error ', e);
     }
 
     //
@@ -159,6 +197,7 @@ DockerRunner.prototype.run = function (options, cb) {
     function runTestCases () {
         // used for sync behaviour
         var caseData = {
+            timeoutId: null,
             lastCaseStart: 0,
             caseIdx: 0,
             caseLimit: opt.testCases.length
@@ -190,6 +229,11 @@ DockerRunner.prototype.run = function (options, cb) {
             response.stderr.push (stderr);
             response.timestamps.push (time - caseData.lastCaseStart);
 
+            if (caseData.timeoutId) {
+                clearTimeout(caseData.timeoutId);
+                caseData.timeoutId = null;
+            }
+
             if (caseData.caseIdx >= opt.testCases.length) {
                 finalize ();
             } else {
@@ -210,7 +254,7 @@ DockerRunner.prototype.run = function (options, cb) {
 
             var cmd = 'docker kill ' + opt.sessionId;
             //noinspection JSUnresolvedVariable
-            setTimeout (function () {
+            caseData.timeoutId = setTimeout (function () {
                 cp.exec (cmd);
                 log.info("Time is out. Kill container: ", cmd);
             }, parseInt(conf.userQuotes.taskLifetime) * 1000);
@@ -222,15 +266,21 @@ DockerRunner.prototype.run = function (options, cb) {
     // function to finalize testing from callback
     function finalize (err) {
 
-        log.error('Finalizing with the following Error: ', err);
+        // logging errors
+        if (err) {
+            log.error('Finalizing with the following Error: ', err); 
+        }
 
+        // delete temporary folders
+        deleteFolderRecursive(sessionDir);
+
+        // call callback function
         if (opt.callback) {
             opt.callback (err, {sessionId: opt.sessionId, response: response});
         } else {
-            if (err) {
-                log.error ('No callback for task');
-            }
+            log.error ('No callback for task');
         }
+
     }
 
 };
