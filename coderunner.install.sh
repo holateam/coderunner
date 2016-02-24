@@ -42,7 +42,7 @@ fi
 
 info 'Updating grub command line to enable memory swapping'
 [[ -r /etc/default/grub ]] && info 'writing changes to file /etc/default/grub' || echo error '/etc/default/grub is unavailable'
-sudo bash -c 'echo "GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"" >> /etc/default/grub'
+sudo bash -c 'echo "GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"" >> /etc/default/grub'
 
 info 'Updating repositories data'
 sudo ${INSTALLER} -y update
@@ -90,12 +90,13 @@ then
   error "Troubles while synchronizing repository, file ${PROJECT_SYNC_DIR}/node/server.js is not available."
   exit 1
 fi
-echo info 'Project was synchronized successfully'
 
-echo info 'Starting server deployment'
+info 'Project was synchronized successfully'
+
+info 'Starting server deployment'
 cd ${PROJECT_SYNC_DIR}
 
-echo info 'Adding non sudo docker usage'
+info 'Adding non sudo docker usage'
 sudo groupadd docker
 sudo gpasswd -a vagrant docker
 newgrp docker
