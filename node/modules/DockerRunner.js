@@ -66,6 +66,7 @@ DockerRunner.prototype.run = function (options, cb) {
 
     var lang = null;
     //noinspection JSDuplicatedDeclaration
+    log.info('Checking language support');
     for (var i = 0; i < conf.supportedLangs.length; i++) {
         if (conf.supportedLangs[i] == opt.language) {
             lang = opt.language;
@@ -83,6 +84,7 @@ DockerRunner.prototype.run = function (options, cb) {
     var sessionDir = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
     //noinspection JSDuplicatedDeclaration,JSUnresolvedVariable
+    log.info('hhh');
     for (var i = 1; i < parseInt(conf.userQuotes.dockerMaxCores); i++) {
         cpu_param += ', ' + i;
     }
