@@ -124,12 +124,15 @@ DockerRunner.prototype.compileCode = function (callback) {
 
         log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
 
-        if (err) {
-            _this.response.compilerErrors = stderr || '';
-            _this.finalize( Error(err) );
-        }
+        //if (err) {
+        //    _this.response.compilerErrors = stderr || '';
+        //    _this.finalize( Error(err) );
+        //}
 
         if (stderr) {
+            if(stderr=="WARNING: Your kernel does not support swap limit capabilities, memory limited without swap.\n")
+                stderr="";
+
             _this.response.compilerErrors = stderr;
         }
 
@@ -138,6 +141,11 @@ DockerRunner.prototype.compileCode = function (callback) {
 };
 
 DockerRunner.prototype.runTestCases = function (callback) {
+
+    if (this.response.compilerErrors && this.response.compilerErrors.length > 0){
+        callback();
+        return;
+    }
 
     var TestCasesRunner = require('./TestCasesRunner');
     var testCasesRunner = new TestCasesRunner();
