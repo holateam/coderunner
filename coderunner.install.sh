@@ -1,14 +1,14 @@
 echo '------ [SHPP] CodeRunner Service ------';
 echo '------ centOS/7 bootstrap script ------';
 
-VAGR_HOME=$(~vagrant)
+VAGR_HOME=$(echo ~vagrant)/sync
 
 echo '---| info: updating grub command line to enable memory swapping'
 [[ -r /etc/default/grub ]] && echo "---| info: writing changes to file /etc/default/grub" || echo "---| error: /etc/default/grub is unavailable"
 sudo bash -c 'echo "GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"" >> /etc/default/grub'
 
 echo '---| info: updating repositories data'
-sudo yum update --assumeyes
+#sudo yum update --assumeyes
 
 
 echo '---| info: checking package: docker'
@@ -55,32 +55,32 @@ fi
 echo '---| info: cloning CodeRunner git repository'
 cd $VAGR_HOME
 
-git clone https://github.com/holateam/coderunner
+#git clone https://github.com/holateam/coderunner
 
-if [[ -r $VAGR_HOME/coderunner/setup-everything.sh ]]
-then 
+if ! [[ -r $VAGR_HOME/coderunner/setup-everything.sh ]]
+then
 	echo "---| info: repository clonned successfully"
-	cd $VAGR_HOME/coderunner
+	cd $VAGR_HOME
 	echo "---| info: starting server deployment"
 	echo "---| info: adding non sudo docker usage"
 	sudo groupadd docker
-	sudo gpasswd -a ${USER} docker	
+	sudo gpasswd -a vagrant docker
 	sudo service docker restart
 	newgrp docker
 	echo '---| info: looking for available docker language compilers'
-	for file in `find /home/karponter/Projects/SHPP/holateam/coderunner/docker/* -type d`
+	for file in `find $VAGR_HOME/docker/* -type d`
 	do
 		lang=$(basename $file)
 		echo "---| Found language: $lang. Creating docker container"
 		cd $file
-		sudo docker build -t {$lang}_img .
+		sudo docker build -t ${lang}_img .
 	done
 	echo '---| info: installing node.ls npm modules and dependencies'
-	cd $VAGR_HOME/coderunner/node
+	cd $VAGR_HOME/node
 	npm install
 	echo "---| info: starting CodeRunner service"
 	npm install -g forever forever-service
-	forever-service install -s $VAGR_HOME/coderunner/node/server.js --start
+	forever-service install -s $VAGR_HOME/node/server.js --start
 	echo -e "---------------------------------------\n---| All preparetions done succsessfully. You need to restart Vagrant now.\n---| Exit Vagrant shell.\n---| Use $ vagrant halt to stop Vagrant\n---| Use vagrant up to start virtual machine"
 else
 	echo "---| error: troubles while clonning repository"

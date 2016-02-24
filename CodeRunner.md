@@ -37,11 +37,11 @@ CodeRunner service
 	 "code": ""#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}"",
 	 "language": "cpp",
 	 "testCases": ["std1","std2"],
-	 "optionalConfig": { 
-			"taskLifetime": 5, 
-			"maxTestCases": 5, 
-			"dockerMaxCores": 3, 
-			"dockerMaxMemory": 512 
+	 "optionalConfig": {
+			"taskLifetime": 5,
+			"maxTestCases": 5,
+			"dockerMaxCores": 3,
+			"dockerMaxMemory": 512
 		}
 	}
 ```
@@ -267,7 +267,7 @@ dockerRunner.run(taskObj,callbackFunc);
 ```
 
 
-###Анализатор частоты запросов (Rejecter.js)
+###Анализатор частоты запросов (rejecter.js)
 
 Для каждого пользователя, при первом его запросе на сервер создается лог частоты запросов.
 Для уменьшения затрат памяти, для каждого пользователя хранится информация только о последних запросах (время определяется параметром `requestAnaliticsTime`).
@@ -377,11 +377,11 @@ dockerRunner.run(taskObj,callbackFunc);
  "code": "#include <iostream>\n #include <cstdlib> \nusing namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}",
  "language":"cpp",
  "testCases":["std1","std2"],
- "optionalConfig": { 
-        "taskLifetime": 5, 
-        "maxTestCases": 5, 
-        "dockerMaxCores": 3, 
-        "dockerMaxMemory": 512  
+ "optionalConfig": {
+        "taskLifetime": 5,
+        "maxTestCases": 5,
+        "dockerMaxCores": 3,
+        "dockerMaxMemory": 512
     }
  }
 
