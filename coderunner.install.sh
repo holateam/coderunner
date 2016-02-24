@@ -1,87 +1,131 @@
-echo '------ [SHPP] CodeRunner Service ------';
-echo '------ centOS/7 bootstrap script ------';
+#!/usr/bin/env bash
+echo '---------- [SHPP] CodeRunner Service -----------';
+echo '------ centOS/7 & Ubuntu bootstrap script ------';
 
-VAGR_HOME=$(echo ~vagrant)/sync
+info () {
+  echo "---|  INFO: $1"
+}
 
-echo '---| info: updating grub command line to enable memory swapping'
-[[ -r /etc/default/grub ]] && echo "---| info: writing changes to file /etc/default/grub" || echo "---| error: /etc/default/grub is unavailable"
+error () {
+  echo "---| ERROR: $1"
+}
+
+info 'Resolving system package manager'
+INSTALLER=''
+if ! [[ $(type yum) = '' ]]
+then
+  info 'yum package manager was found'
+  INSTALLER='yum'
+fi
+if ! [[ $(type apt-get) = '' ]]
+then
+  info 'apt-get package manager was found'
+  INSTALLER='apt-get'
+fi
+if [[ ${INSTALLER} = '' ]]
+then
+  error 'No supported package manager found. Aborting.'
+  exit
+fi
+
+info 'Resolving if the system is vagrant-provided'
+if [[ $(echo ~vagrant) = '~vagrant' ]]
+then
+  info "This system is a non-Vagrant. Using current user as default ($USER)"
+  USER_HOME=$HOME
+  PROJECT_SYNC_DIR=$(pwd)
+else
+  info 'This system is provided with Vagrant. Using user `vagrant` as default'
+  USER_HOME=$(echo ~vagrant)
+  PROJECT_SYNC_DIR=${USER_HOME}/sync
+fi
+
+info 'Updating grub command line to enable memory swapping'
+[[ -r /etc/default/grub ]] && info 'writing changes to file /etc/default/grub' || echo error '/etc/default/grub is unavailable'
 sudo bash -c 'echo "GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"" >> /etc/default/grub'
 
-echo '---| info: updating repositories data'
-#sudo yum update --assumeyes
+info 'Updating repositories data'
+sudo ${INSTALLER} -y update
 
-
-echo '---| info: checking package: docker'
-tmp=$(type docker)
-if [[ $tmp = '' ]]
+info 'Checking package: docker'
+if [[ $(type docker) = '' ]]
 then
-	echo '---| info: can not find docker, installing'
-	sudo yum install docker --assumeyes
+	info 'Can not find docker, installing'
+	info "${INSTALLER} -y install docker"
+	bash -c "sudo ${INSTALLER} -y install docker"
 else
-	echo '---| info: docker is allready installed'
+	info 'docker is already installed'
 fi
 
-echo '---| info: checking package: curl'
-tmp=$(type curl)
-if [[ $tmp = '' ]]
+info 'Checking package: curl'
+if [[ $(type curl) = '' ]]
 then
-	echo '---| info: can not find curl, installing'
-	sudo yum install curl --assumeyes
+	info 'Can not find curl, installing'
+	sudo ${INSTALLER} -y install curl
 else
-	echo '---| info: curl is allready installed'
+	info 'curl is already installed'
 fi
 
-echo '---| info: checking package: git'
-tmp=$(type git)
-if [[ $tmp = '' ]]
+info 'Checking package: git'
+if [[ $(type git) = '' ]]
 then
-	echo '---| info: can not find git, installing'
-	sudo yum install git --assumeyes
+	info 'Can not find git, installing'
+	sudo ${INSTALLER} -y install git
 else
-	echo '---| info: git is allready installed'
+	info 'git is already installed'
 fi
 
-echo '---| info: checking package: node.js'
-tmp=$(type node)
-if [[ $tmp = '' ]]
+info 'Checking package: node.js'
+if [[ $(type node) = '' ]]
 then
-	echo '---| info: can not find node.js, installing'
+	info 'Can not find node.js, installing'
 	curl --silent --location https://rpm.nodesource.com/setup_5.x | sudo bash -
-	sudo yum -y install nodejs --assumeyes
+	sudo ${INSTALLER} -y install nodejs
 else
-	echo '---| info: node.js is allready installed'
+	info 'node.js is already installed'
 fi
 
-echo '---| info: cloning CodeRunner git repository'
-cd $VAGR_HOME
-
-#git clone https://github.com/holateam/coderunner
-
-if ! [[ -r $VAGR_HOME/coderunner/setup-everything.sh ]]
+if ! [[ -r ${PROJECT_SYNC_DIR}/node/server.js ]]
 then
-	echo "---| info: repository clonned successfully"
-	cd $VAGR_HOME
-	echo "---| info: starting server deployment"
-	echo "---| info: adding non sudo docker usage"
-	sudo groupadd docker
-	sudo gpasswd -a vagrant docker
-	sudo service docker restart
-	newgrp docker
-	echo '---| info: looking for available docker language compilers'
-	for file in `find $VAGR_HOME/docker/* -type d`
-	do
-		lang=$(basename $file)
-		echo "---| Found language: $lang. Creating docker container"
-		cd $file
-		sudo docker build -t ${lang}_img .
-	done
-	echo '---| info: installing node.ls npm modules and dependencies'
-	cd $VAGR_HOME/node
-	npm install
-	echo "---| info: starting CodeRunner service"
-	npm install -g forever forever-service
-	forever-service install -s $VAGR_HOME/node/server.js --start
-	echo -e "---------------------------------------\n---| All preparetions done succsessfully. You need to restart Vagrant now.\n---| Exit Vagrant shell.\n---| Use $ vagrant halt to stop Vagrant\n---| Use vagrant up to start virtual machine"
-else
-	echo "---| error: troubles while clonning repository"
+  error "Troubles while synchronizing repository, file ${PROJECT_SYNC_DIR}/node/server.js is not available."
+  exit 1
 fi
+echo info 'Project was synchronized successfully'
+
+echo info 'Starting server deployment'
+cd ${PROJECT_SYNC_DIR}
+
+echo info 'Adding non sudo docker usage'
+sudo groupadd docker
+sudo gpasswd -a vagrant docker
+newgrp docker
+sudo service docker restart
+
+info 'Moving project to static directory'
+PROJECT_HOME=${USER_HOME}/coderunner
+mkdir ${PROJECT_HOME}
+cp -avr ${PROJECT_SYNC_DIR}/* ${PROJECT_HOME}
+if ! [[ -r ${PROJECT_HOME}/coderunner/node/server.js ]]
+then
+  error "Troubles while copying project locally, file ${PROJECT_HOME}/coderunner/node/server.js is not available. Aborting."
+  exit 1
+fi
+
+info 'Looking for available docker language compilers'
+for FILE in `find ${PROJECT_HOME}/docker/* -type d`
+do
+  lang=$(basename ${FILE})
+  info "Found language: $lang. Creating docker container"
+  cd ${FILE}
+  sudo docker build -t ${lang}_img .
+done
+
+info 'Installing node.js npm modules and dependencies'
+cd ${PROJECT_HOME}/node
+npm install
+
+info 'Starting CodeRunner service'
+npm install -g forever forever-service
+forever-service install -s ${PROJECT_HOME}/node/server.js --start
+
+info 'Service deployment finished'
