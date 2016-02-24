@@ -6,7 +6,7 @@
   "requestAnalyticsTime": 60000,
   "relaxTime": 864000000,
   "dockerLogsLength": 1500,
-  "dockerSharedDir": "/home/vladimir/dockerShared",
+  "dockerSharedDir": "/tmp/dockerShared",
   "dockerDir": "/home/vladimir/coderunner/docker",
   "serverSecret": "key",
   "supportedLangs": [
