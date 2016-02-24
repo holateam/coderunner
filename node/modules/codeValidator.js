@@ -25,7 +25,7 @@ function phpValidator(sourcecode, log) {
 }
 
 function nodeValidator(sourcecode, log) {
-    return stub(sourcecode.language);
+    return sendResult(""); //stub(sourcecode.language);
 }
 
 function pythonValidator(sourcecode, log) {
@@ -77,7 +77,7 @@ function validate(sourceData) {
         return cppValidator(sourceData, logs);
     } if (sourceData.language.toLowerCase() == 'php') {
         return phpValidator(sourceData, logs);
-    } if (sourceData.language.toLowerCase() == 'node') {
+    } if (sourceData.language.toLowerCase() == 'js') {
         return nodeValidator(sourceData, logs);
     } if (sourceData.language.toLowerCase() == 'python') {
         return pythonValidator(sourceData);

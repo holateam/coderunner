@@ -42,7 +42,7 @@ TestCasesRunner.prototype.runNextCase = function () {
 
         log.info("testcase callback called with the following params: ", err || 'null', stdout || 'null', stderr || 'null');
         var time = (new Date()).getTime();
-        if (stderr.substr(0, 7) == "WARNING")
+        if(stderr=="WARNING: Your kernel does not support swap limit capabilities, memory limited without swap.\n")
             stderr = "";
 
         if (err) {
