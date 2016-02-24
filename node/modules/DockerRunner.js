@@ -83,7 +83,7 @@ DockerRunner.prototype.run = function (options, cb) {
     var sessionDir = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
     //noinspection JSDuplicatedDeclaration,JSUnresolvedVariable
-    for (var i = 1; i < conf.userQuotes.dockerMaxCores; i++) {
+    for (var i = 1; i < parseInt(conf.userQuotes.dockerMaxCores); i++) {
         cpu_param += ', ' + i;
     }
     //noinspection JSUnresolvedVariable
