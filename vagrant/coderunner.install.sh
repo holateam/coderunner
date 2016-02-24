@@ -1,6 +1,7 @@
-
 echo '------ [SHPP] CodeRunner Service ------';
 echo '------ centOS/7 bootstrap script ------';
+
+VAGR_HOME=$(~vagrant)
 
 echo '---| info: updating grub command line to enable memory swapping'
 [[ -r /etc/default/grub ]] && echo "---| info: writing changes to file /etc/default/grub" || echo "---| error: /etc/default/grub is unavailable"
@@ -52,13 +53,14 @@ else
 fi
 
 echo '---| info: cloning CodeRunner git repository'
-cd $HOME
+cd $VAGR_HOME
+
 git clone https://github.com/holateam/coderunner
 
-if [[ -r $HOME/coderunner/setup-everything.sh ]]
+if [[ -r $VAGR_HOME/coderunner/setup-everything.sh ]]
 then 
 	echo "---| info: repository clonned successfully"
-	cd $HOME/coderunner
+	cd $VAGR_HOME/coderunner
 	echo "---| info: starting server deployment"
 	echo "---| info: adding non sudo docker usage"
 	sudo groupadd docker
@@ -74,11 +76,11 @@ then
 		sudo docker build -t {$lang}_img .
 	done
 	echo '---| info: installing node.ls npm modules and dependencies'
-	cd $HOME/coderunner/node
+	cd $VAGR_HOME/coderunner/node
 	npm install
 	echo "---| info: starting CodeRunner service"
 	npm install -g forever forever-service
-	forever-service install -s $HOME/coderunner/node/server.js --start
+	forever-service install -s $VAGR_HOME/coderunner/node/server.js --start
 	echo -e "---------------------------------------\n---| All preparetions done succsessfully. You need to restart Vagrant now.\n---| Exit Vagrant shell.\n---| Use $ vagrant halt to stop Vagrant\n---| Use vagrant up to start virtual machine"
 else
 	echo "---| error: troubles while clonning repository"
