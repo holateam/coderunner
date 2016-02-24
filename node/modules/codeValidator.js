@@ -10,7 +10,7 @@ function javaValidator(sourcecode, log) {
     return sendResult(log);
 }
 
-function cppValidator(soursecode, log) {
+function cppValidator(sourcecode, log) {
     var regPattern = /(\n|^)\s*\u0023(.+)(\n|$)/;  //pattern for string that starts with any number of whitespace and contains any number of any symbols enclosed between '#' and '\n'
     var endPattern = /(\n|$)/; //end of pattern string that starts with '#'
     checkForbidenLibs(log, regPattern, endPattern, sourcecode.code, "acceptedCpp");
@@ -20,16 +20,16 @@ function cppValidator(soursecode, log) {
     return sendResult(log);
 }
 
-function phpValidator(soursecode, log) {
-    return stub(soursecode.language);
+function phpValidator(sourcecode, log) {
+    return stub(sourcecode.language);
 }
 
-function nodeValidator(soursecode, log) {
-    return stub(soursecode.language);
+function nodeValidator(sourcecode, log) {
+    return stub(sourcecode.language);
 }
 
-function pythonValidator(soursecode, log) {
-    return stub(soursecode.language);
+function pythonValidator(sourcecode, log) {
+    return stub(sourcecode.language);
 }
 
 function findForbidenCode (code, regExp, log, forbidenCode) {

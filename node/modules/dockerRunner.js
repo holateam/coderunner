@@ -190,7 +190,6 @@ DockerRunner.prototype.mergeResponse = function (response) {
 }
 
 DockerRunner.prototype.deleteFolderRecursive = function (path) {
-	return;
     var _this = this;
     if (fs.existsSync(path)) {
         fs.readdirSync(path).forEach(function (file) {
