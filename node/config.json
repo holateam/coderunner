@@ -6,8 +6,8 @@
   "requestAnalyticsTime": 60000,
   "dockerLogsLines": 50,
   "dockerLogsLineBytes": 256,
-  "dockerSharedDir": "~/dockerShared",
-  "dockerDir": "~/coderunner/docker",
+  "dockerSharedDir": "/home/vagrant/dockerShared",
+  "dockerDir": "/home/vagrant/coderunner/docker",
   "serverSecret": "key",
   "supportedLangs": [
     "cpp"
