@@ -80,15 +80,12 @@ DockerRunner.prototype.run = function (options, cb) {
 
     // preparing variables
     
-    var dockerSharedDir = conf.dockerSharedDir;
+    var dockerSharedDir = realpathSync(conf.dockerSharedDir);
     var sessionDir = dockerSharedDir + "/" + opt.sessionId;
     var cpu_param = '0';
-    //noinspection JSDuplicatedDeclaration,JSUnresolvedVariable
-    log.info('hhh');
     for (var i = 1; i < parseInt(conf.userQuotes.dockerMaxCores); i++) {
         cpu_param += ', ' + i;
     }
-    //noinspection JSUnresolvedVariable
     var params = '--name=' + opt.sessionId + ' -m '+conf.userQuotes.dockerMaxMemory+'m --cpuset-cpus "'+cpu_param+'" --net none --rm -v '+sessionDir+':/opt/data';
     var containerPath = opt.language+"_img";
 
