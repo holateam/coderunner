@@ -96,14 +96,13 @@ DockerRunner.prototype.run = function (options, cb) {
         log.info('Preparing shared filesystem tree');
 
         fs.access(dockerSharedDir, fs.R_OK, (err) => {
+            log.info('Docker shared dir does not exist. Attempting to create.');
             fs.mkdirSync(dockerSharedDir);
         });
 
         fs.access(sessionDir, fs.R_OK, (err) => {
+            log.info('Shared session dir does not exist. Attempting to create.');
             fs.mkdirSync(sessionDir);
-        });
-
-        fs.access(sessionDir + '/input', fs.R_OK, (err) => {
             fs.mkdirSync(sessionDir + '/input');
         });
 
