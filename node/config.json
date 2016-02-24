@@ -6,8 +6,8 @@
   "requestAnalyticsTime": 60000,
   "relaxTime": 864000000,
   "dockerLogsLength": 1500,
-  "dockerSharedDir": "/home/vagrant/dockerShared",
-  "dockerDir": "/home/vagrant/coderunner/docker",
+  "dockerSharedDir": "/home/vladimir/dockerShared",
+  "dockerDir": "/home/vladimir/coderunner/docker",
   "serverSecret": "key",
   "supportedLangs": [
     "cpp",
