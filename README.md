@@ -6,3 +6,5 @@ All you need is to request server to compile your code (or not to compile, if yo
 >I'm John and I want you to test my C++ code<br>
 >Here is some code to test<br>
 >And here are some test cases i prepared previously
+
+Every user-code compilation and execution process is enclosed to isolated docker container. 
