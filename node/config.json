@@ -13,7 +13,7 @@
     "cpp"
   ],
   "userQuotes": {
-    "taskLifetime": 3,
+    "taskLifetime": 10,
     "dockerMaxCores": 1,
     "dockerMaxMemory": 512
   },

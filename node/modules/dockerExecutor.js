@@ -123,23 +123,22 @@ DockerExecutor.prototype.run = function (command, callback) {
     };
 
     var onTimeout = function () {
-        log.info('DockerExecutor timeout called');
+        log.info('DockerExecutor timeout called after ', _this.timeout, 'ms');
         if (called) {
             return;
         }
         called = true;
         if (callback) {
             callback.apply(this, ['Time is out of running command >> ' + command, '', '']);
+            _this.kill();
         }
-
-        _this.kill();
 
         /** @ToDo kill container */
     };
 
     cp.exec(command, cpOptions, prepareCallback);
 
-    setTimeout(onTimeout, this.timeout);
+    setTimeout(onTimeout, _this.timeout);
 
 };
 

@@ -4,7 +4,9 @@ var fs = require('fs');
 var mkdirp = require('mkdirp');
 var log = require('./logger');
 var DockerExecutor = require('./dockerExecutor');
+var cp = require('child_process');
 var queue = require("function-queue")();
+
 
 function DockerRunner () {
 
@@ -16,12 +18,14 @@ function DockerRunner () {
         timestamps: []
     };
 
+    this.finalized = false;
+
 }
 
 DockerRunner.prototype.run = function (options, cb) {
 
     if (!options) {
-        this.finalize(new ArgEx('you must pass options object as argument'));
+        throw new ArgEx('you must pass options object as argument');
     }
 
     this.opt = {
@@ -34,28 +38,23 @@ DockerRunner.prototype.run = function (options, cb) {
 
     // validate parameters
     if (!this.opt.sessionId) {
-        this.finalize(new ArgEx('options.sessionId must be defined'));
-        return;
+        throw new ArgEx('options.sessionId must be defined');
     }
     if (!this.opt.code) {
-        this.finalize(new ArgEx('options.code must be defined'));
-        return;
+        throw new ArgEx('options.code must be defined');
     }
     if (!this.opt.language) {
-        this.finalize(new ArgEx('options.language must be defined'));
-        return;
+        throw new ArgEx('options.language must be defined');
     }
     if (!this.opt.testCases) {
-        this.finalize(new ArgEx('options.testCases must be defined'));
-        return;
+        throw new ArgEx('options.testCases must be defined');
     }
 
     log.info('Checking language support');
 
     if (conf.supportedLangs.indexOf(this.opt.language)) {
         var message = 'language ' + this.opt.language + ' is unsupported, use one of those: ' + String(conf.supportedLangs);
-        this.finalize(new ArgEx(message));
-        return;
+        throw new ArgEx(message);
     }
 
     // preparing variables
@@ -68,23 +67,16 @@ DockerRunner.prototype.run = function (options, cb) {
 
     var _this = this;
 
+    queue.push(_this.createSharedDirectory.bind(_this));
+    queue.push(_this.putCodeIntoDirectory.bind(_this));
+    queue.push(_this.compileCode.bind(_this));
+    queue.push(_this.runTestCases.bind(_this));
 
-    try {
+    queue.push(function (cb) {
+        _this.finalize();
+        cb();
+    });
 
-        queue.push(this.createSharedDirectory.bind(this));
-        queue.push(this.putCodeIntoDirectory.bind(this));
-        queue.push(this.compileCode.bind(this));
-        queue.push(this.runTestCases.bind(this));
-
-        queue.push(function (cb) {
-            _this.finalize();
-            cb();
-        });
-
-    } catch (e) {
-        log.error(e);
-        this.finalize(e);
-    }
 
 };
 
@@ -111,19 +103,34 @@ DockerRunner.prototype.createSharedDirectory = function (callback) {
 
         log.info('Session directory created successful');
 
-        callback.call(_this);
+        cp.exec ("chcon -Rt svirt_sandbox_file_t " + _this.sessionDir, function() {
+
+            if (err) {
+                _this.finalize( Error('Can not carefully resolve SElinux permission', err) );
+            } else {
+                log.info('SElinux permissions granted');
+                callback.call(_this);
+            }
+
+        });
+
     });
 };
 
 DockerRunner.prototype.compileCode = function (callback) {
     var _this = this;
-    _this.dockerExecutor.startCompile(function (err, stdout, stderr) {
+    var dockerExecutor = new DockerExecutor(_this.opt.sessionId, _this.imageName);
+    dockerExecutor.startCompile(function (err, stdout, stderr) {
 
         log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
 
-        if (err || (stderr && (stderr != "WARNING: Your kernel does not support swap limit capabilities, memory limited without swap.\n"))) {
+        if (err) {
             _this.response.compilerErrors = stderr || '';
-            throw Error(err || stderr);
+            _this.finalize( Error(err) );
+        }
+
+        if (stderr) {
+            _this.response.compilerErrors = stderr;
         }
 
         callback.call(_this);
@@ -143,7 +150,7 @@ DockerRunner.prototype.runTestCases = function (callback) {
         //    throw Error(err);
         //}
 
-        _this.response = response;
+        _this.mergeResponse(response);
         callback.call();
 
     });
@@ -151,24 +158,39 @@ DockerRunner.prototype.runTestCases = function (callback) {
 };
 
 DockerRunner.prototype.finalize = function (err) {
-    // logging errors
-    if (err) {
-        log.error('Finalizing with the following Error: ', err);
+
+    if (!this.finalized) {
+
+        // logging errors
+        if (err) {
+            log.error('Finalizing with the following Error: ', err);
+        }
+
+        // delete temporary folders
+        this.deleteFolderRecursive(this.sessionDir);
+
+        // call callback function
+        if (this.opt.callback) {
+            this.opt.callback(err, {sessionId: this.opt.sessionId, response: this.response});
+        } else {
+            log.error('No callback for task');
+        }
+
+        this.finalized = true;
     }
-
-    // delete temporary folders
-    this.deleteFolderRecursive(this.sessionDir);
-
-    // call callback function
-    if (this.opt.callback) {
-        this.opt.callback(err, {sessionId: this.opt.sessionId, response: this.response});
-    } else {
-        log.error('No callback for task');
-    }
-
 };
 
+DockerRunner.prototype.mergeResponse = function (response) {
+    var _this = this;
+    for (var property in response) {
+        if (response.hasOwnProperty(property) && this.response.hasOwnProperty(property)) {
+            this.response[property] = response[property];
+        }
+    }
+}
+
 DockerRunner.prototype.deleteFolderRecursive = function (path) {
+	return;
     var _this = this;
     if (fs.existsSync(path)) {
         fs.readdirSync(path).forEach(function (file) {

@@ -6,16 +6,16 @@ else
     if [ -f code ];
     then
         mv code code.java
-	sed -i '0,/class \([a-zA-Z0-9\/_]\+\)/s//class code/' code.java
-	javac code.java
-	if [ $? = 0 ]; 
-	then
-	    java code
-	else
-	    echo "compiler error" >logCompile
-	fi
+        sed -i '0,/class \([a-zA-Z0-9\/_]\+\)/s//class code/' code.java
+        javac code.java
+        if [ $? = 0 ];
+        then
+            java code
+        else
+            echo "compiler error" >logCompile
+        fi
     else
-	echo "No source file" >logCompile
+        echo "No source file" >logCompile
     fi
 fi
 
