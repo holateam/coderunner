@@ -4,13 +4,11 @@
 module.exports = RunnerQueue;
 
 var log = require('./logger');
+var DockerRunner = require('./dockerRunner');
 
 function RunnerQueue () {
     this.arrPendingTasks = [];
     this.workingTasksCounter = 0;
-
-    var DockerRunner = require ('./dockerRunner');
-    this.dockerRunner = new DockerRunner ();
 
     var config = require ('../config.json');
     this.maxWorkingTaskNumber = config.MaxWorkingTaskNumber;
@@ -47,7 +45,8 @@ RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFuncti
 
     log.info("Sending task to DockerRunner", taskObj);
 
-    this.dockerRunner.run (taskObj, returnFunc);
+    var dockerRunner = new DockerRunner();
+    dockerRunner.run(taskObj, returnFunc);
     this.workingTasksCounter++;
 };
 

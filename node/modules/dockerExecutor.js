@@ -136,8 +136,12 @@ DockerExecutor.prototype.run = function (command, callback) {
         clearTimeout(timeoutID);
 
         if (callback) {
-            log.info('...and call own callback with: ' + arguments[0] + ", " + arguments[1].replace("\n", "") + ", " + arguments[2].replace("\n", ""));
-            callback.apply(this, arguments);
+            var arrAnsw = [];
+            arrAnsw[0] = arguments[0];
+            arrAnsw[1] = arguments[1];
+            arrAnsw[2] = arguments[2].replace(config.warningMsg, "").replace("\n", "");
+            log.info('...and call own callback with: ' + arrAnsw[1].replace("\n", "") + ", " + arrAnsw[2]);
+            callback.apply(this, arrAnsw);
         }
     };
 

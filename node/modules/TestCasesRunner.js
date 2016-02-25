@@ -43,7 +43,7 @@ TestCasesRunner.prototype.runNextCase = function () {
 
     var testCallback = function (err, stdout, stderr) {
 
-        log.info("...returned from dockerExecutor to TestCasesRunner with stdout: " + stdout.replace("\n", "") + ', err: ' + err + stderr.replace("\n", ""));
+        log.info("...returned from dockerExecutor to TestCasesRunner with stdout: " + stdout.replace("\n", "") + ', err: ' + stderr);
 
         var time = (new Date()).getTime();
 

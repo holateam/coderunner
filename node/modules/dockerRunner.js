@@ -135,7 +135,9 @@ DockerRunner.prototype.compileCode = function (callback) {
 
     this.dockerExecutor.startCompile(function (err, stdout, stderr) {
 
-        log.info("...returned from DockerExecutor back to DockerRunner  with", stdout || null, stderr.replace("\n", "") || null, err || null);
+        stderr = stderr.replace(conf.warningMsg, "").replace("\n", "");
+
+        log.info("...returned from DockerExecutor back to DockerRunner ");
 
         if (stderr) {
             if (stderr == conf.warningMsg)
