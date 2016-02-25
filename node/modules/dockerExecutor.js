@@ -121,8 +121,6 @@ DockerExecutor.prototype.run = function (command, callback) {
             callback.apply(this, ['Time is out of running command >> ' + command, '', '']);
             _this.kill();
         }
-
-        /** @ToDo kill container */
     };
 
     var timeoutID = setTimeout(onTimeout, _this.timeout);
