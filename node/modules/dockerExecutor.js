@@ -125,6 +125,7 @@ DockerExecutor.prototype.run = function (command, callback) {
     var onTimeout = function () {
         log.info('DockerExecutor timeout called after ', _this.timeout, 'ms');
         if (called) {
+            console.log("already closed");
             return;
         }
         called = true;
