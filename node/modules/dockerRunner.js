@@ -53,8 +53,11 @@ DockerRunner.prototype.run = function (options, cb) {
     log.info('Checking language support');
 
     if (conf.supportedLangs.indexOf(this.opt.language) == -1) {
+        log.info('language is not supported');
         var message = 'language ' + this.opt.language + ' is unsupported, use one of those: ' + String(conf.supportedLangs);
         throw new ArgEx(message)
+    } else {
+        log.info('language ok');
     }
 
     // preparing variables
@@ -63,6 +66,7 @@ DockerRunner.prototype.run = function (options, cb) {
     this.sessionDir = this.dockerSharedDir + "/" + this.opt.sessionId;
     this.imageName = this.opt.language + "_img";
 
+    log.info('Create DockerExecutor object.');
     this.dockerExecutor = new DockerExecutor(this.opt.sessionId, this.imageName);
 
     var _this = this;
@@ -81,6 +85,9 @@ DockerRunner.prototype.run = function (options, cb) {
 };
 
 DockerRunner.prototype.putCodeIntoDirectory = function (callback) {
+
+    log.info('Try put code into directory.');
+
     var _this = this;
     fs.writeFile(_this.sessionDir + "/input/code", _this.opt.code, function (err) {
         if (err) {
@@ -94,6 +101,9 @@ DockerRunner.prototype.putCodeIntoDirectory = function (callback) {
 };
 
 DockerRunner.prototype.createSharedDirectory = function (callback) {
+
+    log.info('Try to create session directory.');
+
     var _this = this;
     mkdirp(_this.sessionDir + '/input', function (err) {
 
@@ -118,19 +128,17 @@ DockerRunner.prototype.createSharedDirectory = function (callback) {
 };
 
 DockerRunner.prototype.compileCode = function (callback) {
+
+    log.info('Try to compile.');
+
     var _this = this;
-    var dockerExecutor = new DockerExecutor(_this.opt.sessionId, _this.imageName);
-    dockerExecutor.startCompile(function (err, stdout, stderr) {
 
-        log.info("returned from compile-docker: ", stdout || null, stderr || null, err || null);
+    this.dockerExecutor.startCompile(function (err, stdout, stderr) {
 
-        //if (err) {
-        //    _this.response.compilerErrors = stderr || '';
-        //    _this.finalize( Error(err) );
-        //}
+        log.info("...returned from DockerExecutor back to DockerRunner  with", stdout || null, stderr.replace("\n", "") || null, err || null);
 
         if (stderr) {
-            if(stderr=="WARNING: Your kernel does not support swap limit capabilities, memory limited without swap.\n")
+            if (stderr == conf.warningMsg)
                 stderr="";
 
             _this.response.compilerErrors = stderr;
@@ -142,7 +150,10 @@ DockerRunner.prototype.compileCode = function (callback) {
 
 DockerRunner.prototype.runTestCases = function (callback) {
 
+    log.info('Try run testcases.');
+
     if (this.response.compilerErrors && this.response.compilerErrors.length > 0){
+        log.info('Compiler error - exit from testcase block.');
         callback();
         return;
     }
@@ -153,11 +164,11 @@ DockerRunner.prototype.runTestCases = function (callback) {
 
     var _this = this;
 
-    testCasesRunner.run(this.dockerExecutor, function (response) {
-        //if(err) {
-        //    throw Error(err);
-        //}
+    log.info('Exec testCasesRunner.');
 
+    testCasesRunner.run(this.dockerExecutor, function (response) {
+
+        log.info('...return from testCasesRunner and merge response.');
         _this.mergeResponse(response);
         callback.call();
 
@@ -167,6 +178,8 @@ DockerRunner.prototype.runTestCases = function (callback) {
 
 DockerRunner.prototype.finalize = function (err) {
 
+    log.info('finalizing DockerRunner.');
+
     if (!this.finalized) {
 
         // logging errors
@@ -175,16 +188,20 @@ DockerRunner.prototype.finalize = function (err) {
         }
 
         // delete temporary folders
+        log.info('Remove tmp folders.');
         this.deleteFolderRecursive(this.sessionDir);
 
         // call callback function
         if (this.opt.callback) {
+            log.info('Run DockerRunner callback function for ' + this.opt.sessionId);
             this.opt.callback(err, {sessionId: this.opt.sessionId, response: this.response});
         } else {
             log.error('No callback for task');
         }
 
         this.finalized = true;
+    } else {
+        log.info('...already finalized');
     }
 };
 

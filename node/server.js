@@ -34,7 +34,6 @@ app.use(function (req, res) {
 
 var server = app.listen(process.env.SERVER_PORT, function () {
     log.info('Running on http://localhost:' + process.env.SERVER_PORT);
-    console.log('Running on http://localhost:' + process.env.SERVER_PORT);
 });
 
 function sendResponse (res, statusCode, code, data) {
@@ -50,6 +49,9 @@ function sendErrorResponse (res, code, message) {
 }
 
 function isolatedTestRoute (req, res) {
+
+    log.info("********************************************************************************************");
+    log.info('Incoming request. Lng: ' + req.body.language + ", num testcases: " + req.body.testCases.length + ", code: " + req.body.code.substr(0, 50));
 
     var userName = req.body.userName;
     var securityCode = req.body.serverSecret;
@@ -83,12 +85,18 @@ function isolatedTestRoute (req, res) {
 
     var id = new Date().getTime().toString();
 
+    log.info("Pushing request " + id + " to the CoderunnerQueue");
+
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig}, function (err, data) {
+
+        log.info("...return from CoderunnerQueue to API-server. Task ID " + id);
+
+        data.codeRunnerVersion = config.version;
+
         if (err) {
-            console.error(err.stack);
             sendErrorResponse(res, 500, 'Internal server error');
         } else {
-            console.log("sending answer to user", data);
+            log.info("Sending answer to " + id + ": ", data);
             sendResponse(res, 200, 200, data);
         }
     });

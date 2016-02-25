@@ -2,6 +2,7 @@
  * Created by vladimir on 20.02.16.
  */
 var log = require('./logger');
+var conf = require('./../config.json') || {supportedLangs: []};
 
 module.exports = TestCasesRunner = function () {
     this.arrTestCases = [];
@@ -25,8 +26,10 @@ TestCasesRunner.prototype.run = function (dockerExecutor, callback) {
 
 TestCasesRunner.prototype.runNextCase = function () {
     this.currentTestCase++;
+    log.info("Running testcase", this.currentTestCase);
 
     if (this.currentTestCase == this.arrTestCases.length) {
+        log.info("...testcases finished");
         this.callback(this.response);
         return;
     }
@@ -40,9 +43,11 @@ TestCasesRunner.prototype.runNextCase = function () {
 
     var testCallback = function (err, stdout, stderr) {
 
-        log.info("testcase callback called with the following params: ", err || 'null', stdout || 'null', stderr || 'null');
+        log.info("...returned from dockerExecutor to TestCasesRunner with stdout: " + stdout.replace("\n", "") + ', err: ' + err + stderr.replace("\n", ""));
+
         var time = (new Date()).getTime();
-        if(stderr=="WARNING: Your kernel does not support swap limit capabilities, memory limited without swap.\n")
+
+        if (stderr == conf.warningMsg)
             stderr = "";
 
         if (err) {
@@ -64,6 +69,8 @@ TestCasesRunner.prototype.runNextCase = function () {
     };
 
     // executing testcase
+    log.info("TestCasesRunner exec dockerExecutor with ", testCase);
+
     this.dockerExecutor.runTestCase(testCase, testCallback);
 
 };
