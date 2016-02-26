@@ -9,6 +9,7 @@
     "function-queue": "0.0.12",
     "mkdirp": "0.5.1",
     "node-env-file": "^0.1.8",
+    "request": "^2.69.0",
     "winston": "2.1.1"
   }
 }
