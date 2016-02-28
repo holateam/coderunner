@@ -18,11 +18,11 @@ function DockerRunner () {
         timestamps: []
     };
 
-    this.finalized = false;
-
 }
 
 DockerRunner.prototype.run = function (options, cb) {
+
+    this.finalized = false;
 
     if (!options) {
         throw new ArgEx('you must pass options object as argument');
@@ -195,7 +195,7 @@ DockerRunner.prototype.mergeResponse = function (response) {
             this.response[property] = response[property];
         }
     }
-}
+};
 
 DockerRunner.prototype.deleteFolderRecursive = function (path) {
     var _this = this;

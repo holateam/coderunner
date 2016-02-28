@@ -123,6 +123,7 @@ DockerExecutor.prototype.run = function (command, callback) {
 
     var onTimeout = function () {
         if (called) {
+            console.log("already closed");
             return;
         }
         called = true;
