@@ -108,7 +108,7 @@ mkdir ${PROJECT_HOME}
 cp -avr ${PROJECT_SYNC_DIR}/* ${PROJECT_HOME}
 if ! [[ -r ${PROJECT_HOME}/coderunner/node/server.js ]]
 then
-  error "Troubles while copying project locally, file ${PROJECT_HOME}/coderunner/node/server.js is not available. Aborting."
+  error "Troubles while copying project locally, file ${PROJECT_HOME}/node/server.js is not available. Aborting."
   exit 1
 fi
 
