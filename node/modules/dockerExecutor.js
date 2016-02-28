@@ -29,7 +29,7 @@ function DockerExecutor (sessionId, imageName) {
 
 DockerExecutor.prototype.runTestCase = function (testCase, callback) {
 
-    log.info('DockerExecutor run test case', testCase);
+    log.info('DockerExecutor run testcase', testCase);
 
     if (!testCase) {
         throw Error('DockerExecutor wrong param testCase >> ', testCase);
@@ -110,20 +110,10 @@ DockerExecutor.prototype.run = function (command, callback) {
 
     var called = false;
 
-    var prepareCallback = function () {
-        if (called) {
-            return;
-        }
-        called = true;
-        if (callback) {
-            log.info('DockerExecutor call callback, args >> ', arguments);
-            callback.apply(this, arguments);
-        }
-    };
-
     var onTimeout = function () {
+        log.info('...DockerExecutor timeout called after ', _this.timeout, 'ms');
         if (called) {
-            console.log("already closed");
+            console.log("...already closed");
             return;
         }
         called = true;
@@ -133,9 +123,29 @@ DockerExecutor.prototype.run = function (command, callback) {
         }
     };
 
-    cp.exec(command, cpOptions, prepareCallback);
+    var timeoutID = setTimeout(onTimeout, _this.timeout);
 
-    setTimeout(onTimeout, _this.timeout);
+    var prepareCallback = function () {
+        log.info('...DockerExecutor prepareCallback called');
+        if (called) {
+            log.info('...already called (?by timeout), so return');
+            return;
+        }
+
+        called = true;
+        clearTimeout(timeoutID);
+
+        if (callback) {
+            var arrAnsw = [];
+            arrAnsw[0] = arguments[0];
+            arrAnsw[1] = arguments[1];
+            arrAnsw[2] = arguments[2].replace(config.warningMsg, "").replace("\n", "");
+            log.info('...and call own callback with: ' + arrAnsw[1].replace("\n", "") + ", " + arrAnsw[2]);
+            callback.apply(this, arrAnsw);
+        }
+    };
+
+    cp.exec(command, cpOptions, prepareCallback);
 
 };
 

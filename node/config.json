@@ -45,5 +45,6 @@
       "mail@example.com",
       "somemail@domain.net"
     ]
-  }
+  },
+  "warningMsg": "WARNING: Your kernel does not support swap limit capabilities, memory limited without swap.\n"
 }
