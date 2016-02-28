@@ -21,7 +21,7 @@ RunnerQueue.prototype.push = function (taskObj, callbackFunction) {
     if (this.workingTasksCounter < this.maxWorkingTaskNumber) {
         this.sendTaskToDockerRunner (taskObj, callbackFunction);
     } else {
-        this.arrPendingTasks.push ({task: taskObj, cb: callbackFunction})
+        this.arrPendingTasks.push ({task: taskObj, cb: callbackFunction});
         console.log ("Task added to pending list", taskObj);
     }
 };
