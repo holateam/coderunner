@@ -1,5 +1,7 @@
 var cp = require('child_process');
 var log = require('./logger');
+var async=require('asyncawait/async');
+var await=require('asyncawait/await');
 
 var cpOptions = {
     encoding: 'utf8',
@@ -55,6 +57,15 @@ DockerExecutor.prototype.kill = function () {
     this.run(executeCommand, null);
 };
 
+DockerExecutor.prototype.rm = function (cb) {
+    log.info('DockerExecutor do rm container '+this.getSessionId());
+    var executeCommand = this.templates().rm
+        .replace('{sessionId}', this.getSessionId());
+
+    this.run(executeCommand, null);
+    cb();
+};
+
 DockerExecutor.prototype.startCompile = function (callback) {
 
     log.info('DockerExecutor start to compile the code');
@@ -96,9 +107,10 @@ DockerExecutor.prototype.getImageName = function () {
 DockerExecutor.prototype.templates = function () {
     return {
         /** @ToDo move /opt/data to config */
-        'compile': 'docker run --name={sessionId} -m {dockerMaxMemory}m --net none --rm -v {sharedDir}:/opt/data {imageName} startcompile',
-        'runTestCase': 'echo \"{testCase}\" | docker run --name={sessionId} -i -m {dockerMaxMemory}m --net none --rm -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start',
-        'kill': 'docker kill {sessionId}'
+        'compile': 'docker run --name={sessionId} -m {dockerMaxMemory}m --net none -v {sharedDir}:/opt/data {imageName} startcompile',
+        'runTestCase': 'echo \"{testCase}\" | docker run --name={sessionId} -i -m {dockerMaxMemory}m --net none -v {sharedDir}:/opt/data --log-driver=json-file --log-opt max-size=1k {imageName} start',
+        'kill': 'docker kill {sessionId}',
+        'rm': 'docker rm {sessionId}'
     }
 };
 
@@ -141,12 +153,45 @@ DockerExecutor.prototype.run = function (command, callback) {
             arrAnsw[1] = arguments[1];
             arrAnsw[2] = arguments[2].replace(config.warningMsg, "").replace("\n", "");
             log.info('...and call own callback with: ' + arrAnsw[1].replace("\n", "") + ", " + arrAnsw[2]);
-            callback.apply(this, arrAnsw);
+	    
+	    var contRmAs=async(function(_this){
+		await(contRmAw(_this))
+	    });
+	    contRmAs(_this)
+		.then(function(){
+		    log.info("Then in dockerExecutor");
+		    callback.apply(_this, arrAnsw);
+		});
         }
     };
 
     cp.exec(command, cpOptions, prepareCallback);
 
 };
+
+function contRmAw (_this){
+    return function (callback) {
+	var _sid= _this.getSessionId();
+	var execCommand = _this.templates().rm
+        .replace('{sessionId}', _sid);
+	function cpRm(){
+	    log.info('rm: '+execCommand);
+	    cp.exec(execCommand, cpOptions, function(err){
+		if(err){
+		    log.info('Error on rm: '+_sid, err);
+		    log.info('Try again at 100 ms');
+		    setTimeout(cpRm,100);
+		} else {
+		    log.info("...cb from rm container"+_sid);
+		    callback();
+		}
+	    });
+	}
+
+	log.info('..but before DockerExecutor must rm container '+_this.sid);
+
+	cpRm();
+    }
+}
 
 module.exports = DockerExecutor;

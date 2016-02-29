@@ -85,7 +85,7 @@ DockerRunner.prototype.run = function (options, cb) {
     });
 */
     var makeTestsAs = async(function (_this) {
-	console.log("making tests async with ", _this);
+	//console.log("making tests async with ", _this);
 	_res = await(createSharedDirectoryAw(_this));
         if (_res)
 		_res = await(putCodeIntoDirectoryAw(_this));

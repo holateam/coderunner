@@ -83,7 +83,8 @@ function isolatedTestRoute (req, res) {
         checkUserConfig(optionalConfig);
     }
 
-    var id = new Date().getTime().toString();
+    //var id = new Date().getTime().toString();
+    var id=""+Math.random(); id=id.substr(2);
 
     log.info("Pushing request " + id + " to the CoderunnerQueue");
 

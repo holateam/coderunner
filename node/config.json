@@ -2,7 +2,7 @@
   "name": "Coderunner service",
   "version": "0.0.1",
   "taskQueueLimit": 100,
-  "MaxWorkingTaskNumber": 10,
+  "MaxWorkingTaskNumber": 3,
   "requestAnalyticsTime": 60000,
   "relaxTime": 864000000,
   "dockerLogsLength": 1500,
