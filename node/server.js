@@ -44,6 +44,7 @@ var server = app.listen(process.env.SERVER_PORT, function () {
 function sendResponse (id, res, statusCode, code, data) {
     saveOnServer({"sessionID": id, "response": {"code": code, "response": data}});
     res.statusCode = code;
+    res.setHeader('Content-Type', 'application/json');
     res.status(statusCode).json({ code, response: data});
     res.end();
 }
@@ -53,6 +54,8 @@ function sendErrorResponse (id, res, code, message) {
     log.error(message);
     saveOnServer({"sessionID": id, "response": {"error": {"code": code, "message": message}}});
     res.statusCode = code;
+    res.statusMessage = message;
+    res.setHeader('Content-Type', 'application/json');
     res.status(code).json({error: {code: code, message: message}});
     res.end();
 }
