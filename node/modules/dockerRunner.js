@@ -5,8 +5,6 @@ var mkdirp = require('mkdirp');
 var log = require('./logger');
 var DockerExecutor = require('./dockerExecutor');
 var cp = require('child_process');
-var queue = require("function-queue")();
-
 
 function DockerRunner () {
 
@@ -17,6 +15,7 @@ function DockerRunner () {
         stderr: [],
         timestamps: []
     };
+    this.queue = require("function-queue")();
 
 }
 
@@ -71,12 +70,12 @@ DockerRunner.prototype.run = function (options, cb) {
 
     var _this = this;
 
-    queue.push(_this.createSharedDirectory.bind(_this));
-    queue.push(_this.putCodeIntoDirectory.bind(_this));
-    queue.push(_this.compileCode.bind(_this));
-    queue.push(_this.runTestCases.bind(_this));
+    this.queue.push(_this.createSharedDirectory.bind(_this));
+    this.queue.push(_this.putCodeIntoDirectory.bind(_this));
+    this.queue.push(_this.compileCode.bind(_this));
+    this.queue.push(_this.runTestCases.bind(_this));
 
-    queue.push(function (cb) {
+    this.queue.push(function (cb) {
         _this.finalize();
         cb();
     });
@@ -190,7 +189,7 @@ DockerRunner.prototype.finalize = function (err) {
         }
 
         // delete temporary folders
-        log.info('Remove tmp folders.');
+        log.info('Remove tmp folders. '+this.sessionDir);
         this.deleteFolderRecursive(this.sessionDir);
 
         // call callback function

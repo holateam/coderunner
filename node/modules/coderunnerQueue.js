@@ -47,6 +47,6 @@ RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFuncti
 
     var dockerRunner = new DockerRunner();
     dockerRunner.run(taskObj, returnFunc);
+
     this.workingTasksCounter++;
 };
-
