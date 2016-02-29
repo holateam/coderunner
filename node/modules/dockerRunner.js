@@ -5,6 +5,9 @@ var mkdirp = require('mkdirp');
 var log = require('./logger');
 var DockerExecutor = require('./dockerExecutor');
 var cp = require('child_process');
+var TestCasesRunner = require('./TestCasesRunner');
+var async=require('asyncawait/async');
+var await=require('asyncawait/await');
 
 function DockerRunner () {
 
@@ -68,6 +71,7 @@ DockerRunner.prototype.run = function (options, cb) {
     log.info('Create DockerExecutor object.');
     this.dockerExecutor = new DockerExecutor(this.opt.sessionId, this.imageName);
 
+/*
     var _this = this;
 
     this.queue.push(_this.createSharedDirectory.bind(_this));
@@ -79,9 +83,99 @@ DockerRunner.prototype.run = function (options, cb) {
         _this.finalize();
         cb();
     });
-
+*/
+    var makeTestsAs = async(function (_this) {
+	console.log("making tests async with ", _this);
+	_res = await(createSharedDirectoryAw(_this));
+        if (_res)
+		_res = await(putCodeIntoDirectoryAw(_this));
+        if (_res)
+		_res = await(compileCodeAw(_this));
+        if (_res)
+		_res = await(runTestCasesAw(_this));
+        await(deleteFolderRecursiveAw(_this));
+	log.info('Run DockerRunner callback function for ' + _this.opt.sessionId);
+        _this.opt.callback(null, {sessionId: _this.opt.sessionId, response: _this.response});
+    });
+    makeTestsAs(this);
 
 };
+
+
+createSharedDirectoryAw = function (_this) {
+  return function (callback) {
+    log.info('Try to create session directory.');
+    mkdirp(_this.sessionDir + '/input', function (err) {
+	res=true;
+        if (err) {
+	    res=false;
+	    log.info('Error on session directory creating');
+        } else {
+    	    log.info('Session directory created successful');
+	}
+	callback(null,res);
+    });
+  }
+};
+putCodeIntoDirectoryAw = function (_this) {
+  return function (callback) {
+    log.info('Try put code into directory.');
+    fs.writeFile(_this.sessionDir + "/input/code", _this.opt.code, function (err) {
+	res=true;
+        if (err) {
+	    res=false;
+	    log.info('Error on User code has moved to file');
+        } else {
+    	    log.info('User code has moved to file successful');
+	}
+        callback(null,res);
+    });
+  }
+};
+compileCodeAw = function (_this) {
+  return function (callback) {
+    log.info('Try to compile.');
+    _this.dockerExecutor.startCompile(function (err, stdout, stderr) {
+        stderr = stderr.replace(conf.warningMsg, "").replace("\n", "");
+        log.info("...returned from DockerExecutor back to DockerRunner ");
+	res=true;
+        if (stderr) {
+            if (stderr == conf.warningMsg){
+                stderr="";
+	    } else {
+		res=false;
+	    }
+            _this.response.compilerErrors = stderr;
+        }
+        callback(null,res);
+    });
+  }
+};
+runTestCasesAw = function (_this) {
+  return function (callback) {
+    log.info('Try run testcases.');
+    var testCasesRunner = new TestCasesRunner();
+    testCasesRunner.setTestCases(_this.opt.testCases);
+    log.info('Exec testCasesRunner.');
+    testCasesRunner.run(_this.dockerExecutor, function (response) {
+        log.info('...return from testCasesRunner and merge response.');
+        _this.mergeResponse(response);
+        callback(null,true);
+    });
+  }
+};
+deleteFolderRecursiveAw = function (_this) {
+  return function (callback) {
+        log.info('Deleting tmp folder '+ _this.sessionDir);
+        cp.exec ("rm -rf " + _this.sessionDir, function(err) {
+            if (err)
+		log.info('err on del',err);
+            callback(null,true);
+        });
+  }
+};
+
+
 
 DockerRunner.prototype.putCodeIntoDirectory = function (callback) {
 

@@ -2,8 +2,10 @@
   "name": "coderunner",
   "version": "0.0.1",
   "dependencies": {
+    "asyncawait": "^1.0.3",
     "binstring": "^0.2.1",
     "body-parser": "1.14.2",
+    "cd": "^0.3.3",
     "express": "4.10.2",
     "fs": "0.0.2",
     "function-queue": "0.0.12",
