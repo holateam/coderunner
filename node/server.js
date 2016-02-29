@@ -68,7 +68,7 @@ function saveOnServer (data) {
             } else if (response.code == 200) {
                 console.log("request was sent successfully");
             } else {
-                log.info("WARNING: code: " + response.code + ", could not send request: ", data;
+                log.info("WARNING: code: " + response.code + ", could not send request: ", data);
             }
         });
 }
@@ -78,7 +78,7 @@ function isolatedTestRoute (req, res) {
     //var id = new Date().getTime().toString();
     var id = "" + Math.random();
     id = id.substr(2);
-    
+
     log.info("********************************************************************************************");
     log.info('Incoming request. Session ID:' + id + ' Lng: ' + req.body.language + ", num testcases: " + req.body.testCases.length + ", code: " + req.body.code.substr(0, 50));
 
