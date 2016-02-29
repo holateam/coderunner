@@ -1,76 +1,108 @@
 var request = require('request');
+var async = require('asyncawait/async');
+var await = require('asyncawait/await');
 var tests = require('./tests_examples');
 var uri = "http://54.213.253.8:5555/isolated-test";
 
 
+var config = require('../node/config.json');
+var taskLifetime = config.userQuotes.taskLifetime * 1000;
 
-console.log('========================================start process testing==================================================');
-runTester(sendRequest, function () {
+var testCounter = tests.length;
+
+
+var runTester = function () {
+    return function (cb) {
+        for (var i = 0; i < tests.length; i++) {
+            try {
+                sendRequest(i, cb);
+            } catch (e) {
+                console.log("catch: " + e);
+            }
+        }
+    }
+};
+
+var start = async(function  () {
+    console.log('========================================start process testing==================================================');
+    await(runTester());
+});
+
+start().then(function () {
     console.log('============================================end process testing=================================================');
 });
 
 
-function runTester(sendRequest, mainCallback, i) {
-    i = i || 0;
-    if (i == tests.length) {
-        return mainCallback();
-    }
-    sendRequest(i, function (err, data) {
-        if (err) {
-            console.log(err);
-            return mainCallback();
-        }
-        console.log(i);
-        console.log('TEST: ', tests[i].desc);
-        console.log("RESULT: ", data);
-        console.log('______________________________________________________________________________________________________');
-        console.log();
-        i++;
-        runTester(sendRequest, mainCallback, i);
-    })
-}
 
-
-function sendRequest(i, callback) {
+function sendRequest(i, cb) {
     request(
         {
             method: 'POST',
             uri: uri,
             json: tests[i].req
-        }
-        , function (error, response, body) {
+        },
+        function (error, response, body){
             if (error) {
-                return callback(error);
-            }  else {
-                var log = [];
-
-                if (body.error) {
-                    try {
-                        if (body.error.code != tests[i].resBody.error.code) {
-                            addlog(log, "code", body.error.code, tests[i].resBody.error.code);
-                        }
-                    } catch (e) {
-                        logException(log, e, body.response, tests[i].resBody);
-                    }
-                } else if (body.code == 422) {
-                    try {
-                        body.response.forEach(function (res, idx) {
-                            if (res["danger-level"] !== tests[i].resBody.response[idx]["danger-level"]) {
-                                addlog(log, idx, res["danger-level"], tests[i].resBody.response[idx]["danger-level"]);
-                            }
-                        });
-                    } catch (e) {
-                        logException(log, e, body.response, tests[i].resBody);
-                    }
-                } else if (body.code == 200) {
-                    compareResponse200(log, body, i);
-                }
-
-                var status = (log.length > 0) ? "fail" : "success";
-                callback(error, {test: status, "log": log});
+                console.log();
+                console.log(error);
+                testCounterDecrement(cb);
+            } else {
+                compareTests(error, response, body, i, cb);
             }
-        });
+        }
+    );
 }
+
+
+
+var compareTests = function (error, response, body, i, cb) {
+
+    var log = [];
+
+    if (body.error) {
+        try {
+            if (body.error.code != tests[i].resBody.error.code) {
+                addlog(log, "code", body.error.code, tests[i].resBody.error.code);
+            }
+        } catch (e) {
+            logException(log, e, body.response, tests[i].resBody);
+        }
+    } else if (body.code == 422) {
+        try {
+            body.response.forEach(function (res, idx) {
+                if (res["danger-level"] !== tests[i].resBody.response[idx]["danger-level"]) {
+                    addlog(log, idx, res["danger-level"], tests[i].resBody.response[idx]["danger-level"]);
+                }
+            });
+        } catch (e) {
+            logException(log, e, body.response, tests[i].resBody);
+        }
+    } else if (body.code == 200) {
+        compareResponse200(log, body, i);
+    }
+
+    var status = (log.length > 0) ? "fail" : "success";
+    var result = {test: status, "log": log};
+
+    printResult(result, i, cb);
+
+};
+
+function printResult(result, i, cb) {
+    console.log('TEST: ', tests[i].desc);
+    console.log("RESULT: ", result);
+    console.log('______________________________________________________________________________________________________');
+    console.log();
+    testCounterDecrement(cb);
+}
+
+function testCounterDecrement(cb) {
+    testCounter--;
+    if (testCounter == 0) {
+        cb();
+    }
+}
+
 
 function addlog(log, diff, res, pattern) {
     log.push({"diff": diff, "res": res, "pattern": pattern});
@@ -101,7 +133,7 @@ function compareResponse200(log, body, i) {
 
         var timestamps = tests[i].resBody.response.timestamps;
         body.response.timestamps.forEach(function (res, idx) {
-            if (res < timestamps) {
+            if (res > taskLifetime && (body.response.stderr[0].toLowerCase()).indexOf("time is out of running") == -1){
                 addlog(log, idx, res, timestamps[idx]);
             }
         });

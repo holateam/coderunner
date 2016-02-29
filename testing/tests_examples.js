@@ -1,51 +1,78 @@
-var config = require('../node/config.json');
 var tests = [];
 var key = "key";
-var taskLifetime = config.userQuotes.taskLifetime;
+
+
+test = {desc: "call timeout",
+    lang: "java",
+    req: {
+        "userName": "any name",
+        "serverSecret": key,
+        "code": "#include <iostream>\n using namespace std;\n int main() {string greeting;\n cin >> greeting;\n for(int i=0; i<10000000000000; i++){} \n cout<< greeting << endl;\n return 0;}",
+        "language":"cpp",
+        "testCases":["test1","std2"]
+    },
+    "resBody": {
+        "code": 200,
+        "response": {
+            "dockerError": null,
+            "compilerErrors": null,
+            "stdout": ["", ""],
+            "stderr": [
+                "Time is out of running command >> echo \"test1\" | docker run --name=1456447004216 -i -m 512m --net none --rm -v /opt/shpp/coderunner/dockerShared/1456447004216:/opt/data --log-driver=json-file --log-opt max-size=1k cpp_img start",
+                "docker: Error response from daemon: Conflict. The name \"/1456447004216\" is already in use by container e4bf434edbb3453ce6481806a325e42f4bf966080d22790e6a36e45cb2075f0d. You have to remove (or rename) that container to be able to reuse that name..\nSee 'docker run --help'.\nError: Command failed: docker: Error response from daemon: Conflict. The name \"/1456447004216\" is already in use by container e4bf434edbb3453ce6481806a325e42f4bf966080d22790e6a36e45cb2075f0d. You have to remove (or rename) that container to be able to reuse that name..\nSee 'docker run --help'.\n"
+            ]
+        }
+    }
+};
+
+tests.push(test);
+
+//===============================================================================================================================================================================
+
+
+
 var test = {desc: "simple stdout c++",
-            lang: "cpp",
-            req: {
-                "userName": "any name",
-                "serverSecret": key,
-                "code": "#include <iostream>   \n   #include <iostream>\n using namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}",
-                "language":"cpp",
-                "testCases":["std1","std2"]
-            },
-            "resBody": {
-                "code": 200,
-                "response": {
-                    "dockerError": null,
-                    "compilerErrors": null,
-                    "stdout": ["11111std1\n", "11111std2\n"],
-                    "stderr": ["",""],
-                    "timestamps": [taskLifetime, taskLifetime]
-                }
-            }
-            };
+    lang: "cpp",
+    req: {
+        "userName": "any name",
+        "serverSecret": key,
+        "code": "#include <iostream>   \n   #include <iostream>\n using namespace std;\n int main() {string greeting;\n cin >> greeting;\n cout << 11111 << greeting << endl;\n return 0;}",
+        "language":"cpp",
+        "testCases":["std1","std2"]
+    },
+    "resBody": {
+        "code": 200,
+        "response": {
+            "dockerError": null,
+            "compilerErrors": null,
+            "stdout": ["11111std1\n", "11111std2\n"],
+            "stderr": ["",""]
+        }
+    }
+};
 tests.push(test);
 
 //===============================================================================================================================================================================
 
 test = {desc: "simple adding c++",
-        lang: "cpp",
-        req: {
-            "userName": "any name",
-            "serverSecret": key,
-            "code": "#include <iostream>\nusing namespace std;\nint main(){int a = 0; \n int b = 0;\ncin >> a;cin >> b;\ncout<<a<<\" \"<<b<<\" \"<<\"res:\"<<a+b<<endl;\nfor(long i=0; i<100;i++){};return 0;}",
-            "language":"cpp",
-            "testCases":["2 3","4 5"]
-        },
-        "resBody": {
-            "code": 200,
-            "response": {
-                "dockerError": null,
-                "compilerErrors": null,
-                "stdout": ["2 3 res:5\n", "4 5 res:9\n"],
-                "stderr": ["", ""],
-                "timestamps": [taskLifetime, taskLifetime]
-            }
+    lang: "cpp",
+    req: {
+        "userName": "any name",
+        "serverSecret": key,
+        "code": "#include <iostream>\nusing namespace std;\nint main(){int a = 0; \n int b = 0;\ncin >> a;cin >> b;\ncout<<a<<\" \"<<b<<\" \"<<\"res:\"<<a+b<<endl;\nfor(long i=0; i<100;i++){};return 0;}",
+        "language":"cpp",
+        "testCases":["2 3","4 5"]
+    },
+    "resBody": {
+        "code": 200,
+        "response": {
+            "dockerError": null,
+            "compilerErrors": null,
+            "stdout": ["2 3 res:5\n", "4 5 res:9\n"],
+            "stderr": ["", ""]
         }
-        };
+    }
+};
 
 tests.push(test);
 
@@ -79,16 +106,11 @@ test = {desc: "suspicious cpp code",
         "serverSecret": key,
         "code": "#include <iostream> \n #include <fstream> \n #include <thread> \n  __asm__()\n using namespace std;\n int main() {string greeting;\n cin >> greeting;\n for(int i=0; i<10; i++){} \n cout<< greeting << endl;\n return 0;}",
         "language":"cpp",
-        "testCases":[]
+        "testCases":["test1","std2"]
     },
     "resBody": {
         "code": 422,
         "response": [
-            {
-                "danger-level": 3,
-                "text": "asm",
-                "comment": "Not allowed to use"
-            },
             {
                 "danger-level": 2,
                 "text": "#include <fstream>",
@@ -97,6 +119,11 @@ test = {desc: "suspicious cpp code",
             {
                 "danger-level": 2,
                 "text": "#include <thread>",
+                "comment": "Not allowed to use"
+            },
+            {
+                "danger-level": 3,
+                "text": "asm",
                 "comment": "Not allowed to use"
             }
         ]
@@ -353,8 +380,7 @@ test = {desc: "simple adding java",
             "dockerError": null,
             "compilerErrors": null,
             "stdout": ["6", "9"],
-            "stderr": ["", ""],
-            "timestamps": [taskLifetime, taskLifetime]
+            "stderr": ["", ""]
         }
     }
 };
@@ -387,8 +413,7 @@ test = {desc: "devision by zero java",
             "stderr": [
                 "Exception in thread \"main\" java.lang.ArithmeticException: / by zero\n\tat code.main(code.java:5)\nError: Command failed: Exception in thread \"main\" java.lang.ArithmeticException: / by zero\n\tat code.main(code.java:5)\n",
                 "Exception in thread \"main\" java.lang.ArithmeticException: / by zero\n\tat code.main(code.java:5)\nError: Command failed: Exception in thread \"main\" java.lang.ArithmeticException: / by zero\n\tat code.main(code.java:5)\n"
-            ],
-            "timestamps": [taskLifetime, taskLifetime]
+            ]
         }
     }
 };
@@ -416,8 +441,7 @@ test = {desc: "compile error java",
             "dockerError": null,
             "compilerErrors": "code.java:5: error: ';' expected\n   for(int i=0; i<1000000 i++){} \n                         ^\n1 error\n",
             "stdout": [],
-            "stderr": [],
-            "timestamps": [taskLifetime, taskLifetime]
+            "stderr": []
         }
     }
 };
@@ -426,36 +450,6 @@ tests.push(test);
 
 //===============================================================================================================================================================================
 
-
-
-
-test = {desc: "call timeout",
-    lang: "java",
-    req: {
-        "userName": "any name",
-        "serverSecret": key,
-        "code": "#include <iostream>\n using namespace std;\n int main() {string greeting;\n cin >> greeting;\n for(int i=0; i<10000000000000; i++){} \n cout<< greeting << endl;\n return 0;}",
-        "language":"cpp",
-        "testCases":["test1","std2"]
-    },
-    "resBody": {
-        "code": 200,
-        "response": {
-            "dockerError": null,
-            "compilerErrors": null,
-            "stdout": ["", ""],
-            "stderr": [
-                "Time is out of running command >> echo \"test1\" | docker run --name=1456447004216 -i -m 512m --net none --rm -v /opt/shpp/coderunner/dockerShared/1456447004216:/opt/data --log-driver=json-file --log-opt max-size=1k cpp_img start",
-                "docker: Error response from daemon: Conflict. The name \"/1456447004216\" is already in use by container e4bf434edbb3453ce6481806a325e42f4bf966080d22790e6a36e45cb2075f0d. You have to remove (or rename) that container to be able to reuse that name..\nSee 'docker run --help'.\nError: Command failed: docker: Error response from daemon: Conflict. The name \"/1456447004216\" is already in use by container e4bf434edbb3453ce6481806a325e42f4bf966080d22790e6a36e45cb2075f0d. You have to remove (or rename) that container to be able to reuse that name..\nSee 'docker run --help'.\n"
-            ],
-            "timestamps": [taskLifetime * 1000, taskLifetime]
-        }
-    }
-};
-
-tests.push(test);
-
-//===============================================================================================================================================================================
 
 
 module.exports = tests;

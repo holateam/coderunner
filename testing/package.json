@@ -2,6 +2,7 @@
   "name": "tester",
   "version": "0.0.1",
   "dependencies": {
-    "request":"*"
+    "asyncawait": "^1.0.3",
+    "request": "^2.69.0"
   }
 }
