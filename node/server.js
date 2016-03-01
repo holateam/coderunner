@@ -36,7 +36,7 @@ app.post('/isolated-test', isolatedTestRoute);
 
 // if route not found
 app.use(function (req, res) {
-    sendErrorResponse(id, res, 404, 'Route not found');
+    sendErrorResponse("id", res, 404, 'Route not found');
 });
 
 var server = app.listen(process.env.SERVER_PORT, function () {
@@ -82,14 +82,33 @@ function saveOnServer (data) {
         });
 }
 
+function Log(id) {
+    this.id=id;
+    var logger = require('./modules/logger');
+    this.info = function (msg) {
+        var arg1 = arguments[1];
+        if(arguments[1]==undefined)
+            arg1 = "";
+        logger.info(this.id, arguments[0], arg1);
+    };
+    this.error = function (msg) {
+        var arg1 = arguments[1];
+        if(arguments[1]==undefined)
+            arg1 = "";
+        logger.error(this.id, arguments[0], arg1);
+    };
+}
+
 function isolatedTestRoute (req, res) {
 
     //var id = new Date().getTime().toString();
     var id = "" + Math.random();
     id = id.substr(2);
 
-    log.info("********************************************************************************************");
-    log.info('Incoming request. Session ID:' + id + ' Lng: ' + req.body.language + ", num testcases: " + req.body.testCases.length + ", code: " + req.body.code.substr(0, 50));
+    var logNew = new Log(id);
+
+    logNew.info("********************************************************************************************");
+    logNew.info('Incoming request. Session ID:' + id + ' Lng: ' + req.body.language + ", num testcases: " + req.body.testCases.length + ", code: " + req.body.code.substr(0, 50));
 
     saveOnServer({"sessionID": id, "request": req.body});
 
@@ -124,18 +143,18 @@ function isolatedTestRoute (req, res) {
         checkUserConfig(optionalConfig);
     }
 
-    log.info("Pushing request " + id + " to the CoderunnerQueue");
+    logNew.info("Pushing request " + id + " to the CoderunnerQueue");
 
-    queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig}, function (err, data) {
+    queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig, log: logNew}, function (err, data) {
 
-        log.info("...return from CoderunnerQueue to API-server. Task ID " + id);
+        logNew.info("...return from CoderunnerQueue to API-server. Task ID " + id);
 
         data.codeRunnerVersion = config.version;
 
         if (err) {
             sendErrorResponse(id, res, 500, 'Internal server error');
         } else {
-            log.info("Sending answer to " + id + ": ", data);
+            logNew.info("Sending answer to " + id + ": ", data);
             sendResponse(id, res, 200, 200, data);
         }
     });

@@ -1,5 +1,5 @@
 var cp = require('child_process');
-var log = require('./logger');
+//var log = require('./logger');
 var async=require('asyncawait/async');
 var await=require('asyncawait/await');
 
@@ -11,8 +11,8 @@ var cpOptions = {
 
 var config = require('./../config.json') || {supportedLangs: []};
 
-function DockerExecutor (sessionId, imageName) {
-
+function DockerExecutor (sessionId, imageName, logger) {
+    this.log = logger;
     if (!sessionId) {
         throw Error('DockerExecutor:constructor wrong param sessionId');
     }
@@ -21,7 +21,7 @@ function DockerExecutor (sessionId, imageName) {
         throw Error('DockerExecutor:constructor wrong param imageName');
     }
 
-    log.info('DockerExecutor init with the following params: ', sessionId, imageName);
+    this.log.info('DockerExecutor init with the following params: ', sessionId, imageName);
 
     this.sessionId = sessionId;
     this.imageName = imageName;
@@ -31,7 +31,7 @@ function DockerExecutor (sessionId, imageName) {
 
 DockerExecutor.prototype.runTestCase = function (testCase, callback) {
 
-    log.info('DockerExecutor run testcase', testCase);
+    this.log.info('DockerExecutor run testcase', testCase);
 
     if (!testCase) {
         throw Error('DockerExecutor wrong param testCase >> ', testCase);
@@ -50,7 +50,7 @@ DockerExecutor.prototype.runTestCase = function (testCase, callback) {
 };
 
 DockerExecutor.prototype.kill = function () {
-    log.info('DockerExecutor do kill');
+    this.log.info('DockerExecutor do kill');
     var executeCommand = this.templates().kill
         .replace('{sessionId}', this.getSessionId());
 
@@ -58,7 +58,7 @@ DockerExecutor.prototype.kill = function () {
 };
 
 DockerExecutor.prototype.rm = function (cb) {
-    log.info('DockerExecutor do rm container '+this.getSessionId());
+    this.log.info('DockerExecutor do rm container '+this.getSessionId());
     var executeCommand = this.templates().rm
         .replace('{sessionId}', this.getSessionId());
 
@@ -68,7 +68,7 @@ DockerExecutor.prototype.rm = function (cb) {
 
 DockerExecutor.prototype.startCompile = function (callback) {
 
-    log.info('DockerExecutor start to compile the code');
+    this.log.info('DockerExecutor start to compile the code');
 
     var execCommand = this.templates().compile
         .replace('{sessionId}', this.getSessionId())
@@ -118,14 +118,14 @@ DockerExecutor.prototype.run = function (command, callback) {
 
     var _this = this;
 
-    log.info('DockerExecutor run command >> ', command);
+    this.log.info('DockerExecutor run command >> ', command);
 
     var called = false;
 
     var onTimeout = function () {
-        log.info('...DockerExecutor timeout called after ', _this.timeout, 'ms');
+        _this.log.info('...DockerExecutor timeout called after ', _this.timeout, 'ms');
         if (called) {
-            console.log("...already closed");
+            _this.log("...already closed");
             return;
         }
         called = true;
@@ -138,9 +138,9 @@ DockerExecutor.prototype.run = function (command, callback) {
     var timeoutID = setTimeout(onTimeout, _this.timeout);
 
     var prepareCallback = function () {
-        log.info('...DockerExecutor prepareCallback called');
+        _this.log.info('...DockerExecutor prepareCallback called');
         if (called) {
-            log.info('...already called (?by timeout), so return');
+            _this.log.info('...already called (?by timeout), so return');
             return;
         }
 
@@ -152,14 +152,14 @@ DockerExecutor.prototype.run = function (command, callback) {
             arrAnsw[0] = arguments[0];
             arrAnsw[1] = arguments[1];
             arrAnsw[2] = arguments[2].replace(config.warningMsg, "").replace("\n", "");
-            log.info('...and call own callback with: ' + arrAnsw[1].replace("\n", "") + ", " + arrAnsw[2]);
-	    
+            _this.log.info('...and call own callback with: ' + arrAnsw[1].replace("\n", "") + ", " + arrAnsw[2]);
+
 	    var contRmAs=async(function(_this){
-		await(contRmAw(_this))
+		    await(contRmAw(_this))
 	    });
 	    contRmAs(_this)
 		.then(function(){
-		    log.info("Then in dockerExecutor");
+		    _this.log.info("Then in dockerExecutor");
 		    callback.apply(_this, arrAnsw);
 		});
         }
@@ -175,20 +175,20 @@ function contRmAw (_this){
 	var execCommand = _this.templates().rm
         .replace('{sessionId}', _sid);
 	function cpRm(){
-	    log.info('rm: '+execCommand);
+        _this.log.info('rm: '+execCommand);
 	    cp.exec(execCommand, cpOptions, function(err){
 		if(err){
-		    log.info('Error on rm: '+_sid, err);
-		    log.info('Try again at 100 ms');
+		    _this.log.info('Error on rm: '+_sid, err);
+		    _this.log.info('Try again at 100 ms');
 		    setTimeout(cpRm,100);
 		} else {
-		    log.info("...cb from rm container"+_sid);
+		    _this.log.info("...cb from rm container"+_sid);
 		    callback();
 		}
 	    });
 	}
 
-	log.info('..but before DockerExecutor must rm container '+_this.sid);
+	_this.log.info('..but before DockerExecutor must rm container '+_sid);
 
 	cpRm();
     }

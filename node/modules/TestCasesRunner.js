@@ -4,7 +4,8 @@
 var log = require('./logger');
 var conf = require('./../config.json') || {supportedLangs: []};
 
-module.exports = TestCasesRunner = function () {
+module.exports = TestCasesRunner = function (logger) {
+    this.log = logger;
     this.arrTestCases = [];
     this.currentTestCase = -1;
     this.response = {
@@ -26,10 +27,10 @@ TestCasesRunner.prototype.run = function (dockerExecutor, callback) {
 
 TestCasesRunner.prototype.runNextCase = function () {
     this.currentTestCase++;
-    log.info("Running testcase", this.currentTestCase);
+    this.log.info("Running testcase", this.currentTestCase);
 
     if (this.currentTestCase == this.arrTestCases.length) {
-        log.info("...testcases finished");
+        this.log.info("...testcases finished");
         this.callback(this.response);
         return;
     }
@@ -43,7 +44,7 @@ TestCasesRunner.prototype.runNextCase = function () {
 
     var testCallback = function (err, stdout, stderr) {
 
-        log.info("...returned from dockerExecutor to TestCasesRunner with stdout: " + stdout.replace("\n", "") + ', err: ' + stderr);
+        _this.log.info("...returned from dockerExecutor to TestCasesRunner with stdout: " + stdout.replace("\n", "") + ', err: ' + stderr);
 
         var time = (new Date()).getTime();
 
@@ -51,7 +52,7 @@ TestCasesRunner.prototype.runNextCase = function () {
             stderr = "";
 
         if (err) {
-            log.error("testcase called with the following error: ", err);
+            _this.log.error("testcase called with the following error: ", err);
             if ("" + err == "Error: stdout maxBuffer exceeded") {
                 stderr += "" + err;
             } else if (err.code == 137) {
@@ -69,7 +70,7 @@ TestCasesRunner.prototype.runNextCase = function () {
     };
 
     // executing testcase
-    log.info("TestCasesRunner exec dockerExecutor with ", testCase);
+    this.log.info("TestCasesRunner exec dockerExecutor with ", testCase);
 
     this.dockerExecutor.runTestCase(testCase, testCallback);
 

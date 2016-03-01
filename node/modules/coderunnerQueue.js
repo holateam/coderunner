@@ -3,7 +3,6 @@
  */
 module.exports = RunnerQueue;
 
-var log = require('./logger');
 var DockerRunner = require('./dockerRunner');
 
 function RunnerQueue () {
@@ -16,11 +15,11 @@ function RunnerQueue () {
 
 RunnerQueue.prototype.push = function (taskObj, callbackFunction) {
     if (this.workingTasksCounter < this.maxWorkingTaskNumber) {
-        log.info("Queue of working tasks has free places.");
+        taskObj.log.info("Queue of working tasks has free places.");
         this.sendTaskToDockerRunner (taskObj, callbackFunction);
     } else {
         this.arrPendingTasks.push({task: taskObj, cb: callbackFunction});
-        log.info("Queue is full. Task added to pending list " + taskObj.sessionId);
+        taskObj.log.info("Queue is full. Task added to pending list " + taskObj.sessionId);
     }
 };
 
@@ -30,7 +29,7 @@ RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFuncti
     var returnFunc = function (err, result) {
         var sessionId=result.sessionId, answerObj=result.response;
 
-        log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
+        taskObj.log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
 
         self.workingTasksCounter--;
 
@@ -39,11 +38,11 @@ RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFuncti
             self.sendTaskToDockerRunner (taskToSolve.task, taskToSolve.cb);
         }
 
-        log.info("Sending answer " + sessionId + " to API-server");
+        taskObj.log.info("Sending answer " + sessionId + " to API-server");
         callbackFunction (err, answerObj);
     };
 
-    log.info("Sending task to DockerRunner", taskObj);
+    taskObj.log.info("Sending task to DockerRunner", taskObj);
 
     var dockerRunner = new DockerRunner();
     dockerRunner.run(taskObj, returnFunc);

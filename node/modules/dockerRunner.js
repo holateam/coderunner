@@ -2,7 +2,7 @@ var conf = require('./../config.json') || {supportedLangs: []};
 var ArgEx = require('./exceptions/illegalarg').IllegalArgumentException;
 var fs = require('fs');
 var mkdirp = require('mkdirp');
-var log = require('./logger');
+//var log = require('./logger');
 var DockerExecutor = require('./dockerExecutor');
 var cp = require('child_process');
 var TestCasesRunner = require('./TestCasesRunner');
@@ -18,12 +18,12 @@ function DockerRunner () {
         stderr: [],
         timestamps: []
     };
-    this.queue = require("function-queue")();
+    //this.queue = require("function-queue")();
 
 }
 
 DockerRunner.prototype.run = function (options, cb) {
-
+    this.log = options.log;
     this.finalized = false;
 
     if (!options) {
@@ -52,14 +52,14 @@ DockerRunner.prototype.run = function (options, cb) {
         throw new ArgEx('options.testCases must be defined');
     }
 
-    log.info('Checking language support');
+    this.log.info('Checking language support');
 
     if (conf.supportedLangs.indexOf(this.opt.language) == -1) {
-        log.info('language is not supported');
+        this.log.info('language is not supported');
         var message = 'language ' + this.opt.language + ' is unsupported, use one of those: ' + String(conf.supportedLangs);
         throw new ArgEx(message)
     } else {
-        log.info('language ok');
+        this.log.info('language ok');
     }
 
     // preparing variables
@@ -68,8 +68,8 @@ DockerRunner.prototype.run = function (options, cb) {
     this.sessionDir = this.dockerSharedDir + "/" + this.opt.sessionId;
     this.imageName = this.opt.language + "_img";
 
-    log.info('Create DockerExecutor object.');
-    this.dockerExecutor = new DockerExecutor(this.opt.sessionId, this.imageName);
+    this.log.info('Create DockerExecutor object.');
+    this.dockerExecutor = new DockerExecutor(this.opt.sessionId, this.imageName, this.log);
 
 /*
     var _this = this;
@@ -85,16 +85,16 @@ DockerRunner.prototype.run = function (options, cb) {
     });
 */
     var makeTestsAs = async(function (_this) {
-	//console.log("making tests async with ", _this);
-	_res = await(createSharedDirectoryAw(_this));
+        //console.log("making tests async with ", _this);
+        var _res = await(createSharedDirectoryAw(_this));
         if (_res)
-		_res = await(putCodeIntoDirectoryAw(_this));
+            _res = await(putCodeIntoDirectoryAw(_this));
         if (_res)
-		_res = await(compileCodeAw(_this));
+            _res = await(compileCodeAw(_this));
         if (_res)
-		_res = await(runTestCasesAw(_this));
+            _res = await(runTestCasesAw(_this));
         await(deleteFolderRecursiveAw(_this));
-	log.info('Run DockerRunner callback function for ' + _this.opt.sessionId);
+        _this.log.info('Run DockerRunner callback function for ' + _this.opt.sessionId);
         _this.opt.callback(null, {sessionId: _this.opt.sessionId, response: _this.response});
     });
     makeTestsAs(this);
@@ -104,46 +104,46 @@ DockerRunner.prototype.run = function (options, cb) {
 
 createSharedDirectoryAw = function (_this) {
   return function (callback) {
-    log.info('Try to create session directory.');
+    _this.log.info('Try to create session directory.');
     mkdirp(_this.sessionDir + '/input', function (err) {
-	res=true;
+        var res=true;
         if (err) {
-	    res=false;
-	    log.info('Error on session directory creating');
+            res=false;
+            _this.log.info('Error on session directory creating');
         } else {
-    	    log.info('Session directory created successful');
-	}
-	callback(null,res);
+            _this.log.info('Session directory created successful');
+        }
+    	callback(null,res);
     });
   }
 };
 putCodeIntoDirectoryAw = function (_this) {
   return function (callback) {
-    log.info('Try put code into directory.');
+    _this.log.info('Try put code into directory.');
     fs.writeFile(_this.sessionDir + "/input/code", _this.opt.code, function (err) {
-	res=true;
+        var res=true;
         if (err) {
-	    res=false;
-	    log.info('Error on User code has moved to file');
+            res=false;
+            _this.log.info('Error on User code has moved to file');
         } else {
-    	    log.info('User code has moved to file successful');
-	}
+            _this.log.info('User code has moved to file successful');
+        }
         callback(null,res);
     });
   }
 };
 compileCodeAw = function (_this) {
   return function (callback) {
-    log.info('Try to compile.');
+    _this.log.info('Try to compile.');
     _this.dockerExecutor.startCompile(function (err, stdout, stderr) {
         stderr = stderr.replace(conf.warningMsg, "").replace("\n", "");
-        log.info("...returned from DockerExecutor back to DockerRunner ");
-	res=true;
+        _this.log.info("...returned from DockerExecutor back to DockerRunner ");
+	    var res=true;
         if (stderr) {
             if (stderr == conf.warningMsg){
                 stderr="";
 	    } else {
-		res=false;
+		    res=false;
 	    }
             _this.response.compilerErrors = stderr;
         }
@@ -153,12 +153,12 @@ compileCodeAw = function (_this) {
 };
 runTestCasesAw = function (_this) {
   return function (callback) {
-    log.info('Try run testcases.');
-    var testCasesRunner = new TestCasesRunner();
+    _this.log.info('Try run testcases.');
+    var testCasesRunner = new TestCasesRunner(_this.log);
     testCasesRunner.setTestCases(_this.opt.testCases);
-    log.info('Exec testCasesRunner.');
+      _this.log.info('Exec testCasesRunner.');
     testCasesRunner.run(_this.dockerExecutor, function (response) {
-        log.info('...return from testCasesRunner and merge response.');
+        _this.log.info('...return from testCasesRunner and merge response.');
         _this.mergeResponse(response);
         callback(null,true);
     });
@@ -166,12 +166,12 @@ runTestCasesAw = function (_this) {
 };
 deleteFolderRecursiveAw = function (_this) {
   return function (callback) {
-        log.info('Deleting tmp folder '+ _this.sessionDir);
-        cp.exec ("rm -rf " + _this.sessionDir, function(err) {
-            if (err)
-		log.info('err on del',err);
-            callback(null,true);
-        });
+    _this.log.info('Deleting tmp folder '+ _this.sessionDir);
+    cp.exec ("rm -rf " + _this.sessionDir, function(err) {
+        if (err)
+            _this.log.info('err on del',err);
+        callback(null,true);
+    });
   }
 };
 
