@@ -27,6 +27,9 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
+app.get('/ping', function (req, res) {
+    checkCriticalLog();
+});
 
 // routes
 app.post('/isolated-test', isolatedTestRoute);
@@ -46,7 +49,7 @@ function sendResponse (id, res, statusCode, code, data) {
     saveOnServer({"sessionID": id, "response": {"code": code, "response": data}});
     res.statusCode = code;
     res.setHeader('Content-Type', 'application/json');
-    res.status(statusCode).json({ code, response: data});
+    res.status(statusCode).json({code: code, response: data});
     res.end();
 }
 
@@ -140,4 +143,9 @@ function isolatedTestRoute (req, res) {
 
 function validateKey(key) {
     return (config.serverSecret == key);
+}
+
+
+function checkCriticalLog() {
+
 }
