@@ -169,27 +169,35 @@ DockerExecutor.prototype.run = function (command, callback) {
 
 };
 
+// remove docker container, awaitable
 function contRmAw (_this){
     return function (callback) {
 	var _sid= _this.getSessionId();
 	var execCommand = _this.templates().rm
         .replace('{sessionId}', _sid);
-	function cpRm(){
+    var counter=0;
+
+    function cpRm(){
         _this.log.info('rm: '+execCommand);
 	    cp.exec(execCommand, cpOptions, function(err){
 		if(err){
 		    _this.log.info('Error on rm: '+_sid, err);
 		    _this.log.info('Try again at 100 ms');
-		    setTimeout(cpRm,100);
+		    counter++;
+            if (counter==20) {
+                _this.log.error("Can't remove container "+_sid);
+                _this.log.info("...cb from rm container "+_sid);
+                callback();
+            }
+            setTimeout(cpRm,100);
 		} else {
-		    _this.log.info("...cb from rm container"+_sid);
+		    _this.log.info("...cb from rm container "+_sid);
 		    callback();
 		}
 	    });
 	}
 
 	_this.log.info('..but before DockerExecutor must rm container '+_sid);
-
 	cpRm();
     }
 }
