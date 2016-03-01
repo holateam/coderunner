@@ -27,12 +27,13 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
+
 // routes
 app.post('/isolated-test', isolatedTestRoute);
 
 // if route not found
 app.use(function (req, res) {
-    sendErrorResponse(res, 404, 'Route not found');
+    sendErrorResponse(id, res, 404, 'Route not found');
 });
 
 var server = app.listen(process.env.SERVER_PORT, function () {
