@@ -1,6 +1,9 @@
+var Promise = require('bluebird');
+var async = require('asyncawait/async');
+var await = require('asyncawait/await');
+
 var express = require('express');
 var bodyParser = require('body-parser');
-var request = require('request');
 var log = require('./modules/logger');
 var env = require('node-env-file');
 var validateCode = require('./modules/codeValidator');
@@ -11,6 +14,8 @@ var config = require('./config.json');
 var Queue = require('./modules/coderunnerQueue');
 var queue = new Queue();
 var uri = "http://nonscire.pp.ua/request-logger/logme.php";
+var sendRequest = require('./sendRequest.js');
+var selfVerification = require('./selfVerification');
 
 
 
@@ -27,9 +32,17 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/ping', function (req, res) {
-    checkCriticalLog();
+var pingRout = async(function(req, res) {
+    if (await(selfVerification())) {
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(403);
+    }
 });
+
+
+app.get('/ping', pingRoute);
+
 
 // routes
 app.post('/isolated-test', isolatedTestRoute);
@@ -64,23 +77,18 @@ function sendErrorResponse (id, res, code, message) {
     res.end();
 }
 
-function saveOnServer (data) {
-    request(
-        {
-            method: 'POST',
-            uri: uri,
-            json: {"secret" : "someKey", "data": data}
-        },
-        function (err, response){
-            if (err) {
-                log.info("ERROR: " + err + ", could not send request: ", data);
-            } else if (response.code == 200) {
-                console.log("request was sent successfully");
-            } else {
-                log.info("WARNING: code: " + response.code + ", could not send request: ", data);
-            }
-        });
-}
+
+var saveOnServer = async ((data)=> {
+    var response = await (sendRequest(uri, {"secret" : "someKey", "data": data}));
+    if (response.error) {
+        log.info("ERROR: " + response.error + ", could not send request: ", data);
+    } else if (response.body.code == 200) {
+        console.log("request was sent successfully");
+    } else {
+        log.info("WARNING: code: " + body.code + ", could not send request: ", data);
+    }
+});
+
 
 function Log(id) {
     this.id=id;
@@ -100,7 +108,6 @@ function Log(id) {
 }
 
 function isolatedTestRoute (req, res) {
-
     //var id = new Date().getTime().toString();
     var id = "" + Math.random();
     id = id.substr(2);
@@ -108,7 +115,7 @@ function isolatedTestRoute (req, res) {
     var logNew = new Log(id);
 
     logNew.info("********************************************************************************************");
-    logNew.info('Incoming request. Session ID:' + id + ' Lng: ' + req.body.language + ", num testcases: " + req.body.testCases.length + ", code: " + req.body.code.substr(0, 50));
+    logNew.info('Incoming request. Session ID:' + id + ' request: ', req.body);
 
     saveOnServer({"sessionID": id, "request": req.body});
 
@@ -143,8 +150,20 @@ function isolatedTestRoute (req, res) {
         checkUserConfig(optionalConfig);
     }
 
-    logNew.info("Pushing request " + id + " to the CoderunnerQueue");
+    logNew.info(`Pushing request ${id} to the CoderunnerQueue`);
 
+    /*let response = queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig, log: logNew});
+
+    logNew.info(`...return from CoderunnerQueue to API-server. Task ID ${id}`);
+
+    response.codeRunnerVersion = config.version;
+
+    if (response.error) {
+        sendErrorResponse(id, res, 500, 'Internal server error');
+    } else {
+        logNew.info("Sending answer to " + id + ": ", response.data);
+        sendResponse(id, res, 200, 200, response.data);*/
+    }
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig, log: logNew}, function (err, data) {
 
         logNew.info("...return from CoderunnerQueue to API-server. Task ID " + id);
@@ -164,7 +183,3 @@ function validateKey(key) {
     return (config.serverSecret == key);
 }
 
-
-function checkCriticalLog() {
-
-}
