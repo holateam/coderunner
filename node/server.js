@@ -1,6 +1,4 @@
 var Promise = require('bluebird');
-var async = require('asyncawait/async');
-var await = require('asyncawait/await');
 
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -32,14 +30,18 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-var pingRoute = async(function(req, res) {
-    if (await(selfVerification())) {
-        res.sendStatus(200);
-    } else {
-        res.sendStatus(403);
-    }
-});
 
+function pingRoute(req, res) {
+    return Promise.resolve(selfVerification())
+            .then((response)=> {
+                if(response) {
+                    res.sendStatus(200);
+                } else {
+                    res.sendStatus(403);
+                }
+            })
+            .catch(console.log.bind(console));
+}
 
 app.get('/ping', pingRoute);
 
@@ -77,17 +79,19 @@ function sendErrorResponse (id, res, code, message) {
     res.end();
 }
 
-
-var saveOnServer = async ((data)=> {
-    var response = await (sendRequest(uri, {"secret" : "someKey", "data": data}));
-    if (response.error) {
-        log.info("ERROR: " + response.error + ", could not send request: ", data);
-    } else if (response.statusCode == 200) {
-        console.log("request was sent successfully");
-    } else {
-        log.info("WARNING: code: " + response.statusCode + ", could not send request: ", data);
-    }
-});
+function saveOnServer(data) {
+    return Promise.resolve(sendRequest(uri, data))
+            .then((response)=> {
+                if(response.error) {
+                    log.info("ERROR: " + response.error + ", could not send request: ", data);
+                } else if (response.statusCode == 200) {
+                    console.log("request was sent successfully");
+                } else {
+                    log.info("WARNING: code: " + response.statusCode + ", could not send request: ", data);
+                }
+            })
+            .catch(console.log.bind(console));
+}
 
 
 function Log(id) {

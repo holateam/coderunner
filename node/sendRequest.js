@@ -1,27 +1,27 @@
 
 var Promise = require('bluebird');
 var request = Promise.promisify(require('request'));
-var async = require('asyncawait/async');
-var await = require('asyncawait/await');
 
 
-var sendRequest = async.result (function(uri, body) {
+
+
+function sendRequest (uri, body) {
     var response = {};
-    await (request(
+    return Promise.resolve(request(
         {
-            method: 'POST',
-            uri: uri,
-            json: body
-        }
-    ).then(function(incomingMsg){
+        method: 'POST',
+        uri: uri,
+        json: body
+        }))
+        .then((incomingMsg)=> {
         response.error = incomingMsg.error;
         response.statusCode = incomingMsg.statusCode;
         response.body = incomingMsg.body;
-    }).catch(function(e){
-        response.error = e;
-    }));
-    return response;
-});
+        return response;
+        })
+        .catch(console.log.bind(console));
+}
+
 
 
 module.exports = sendRequest;

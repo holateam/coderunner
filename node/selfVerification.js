@@ -1,7 +1,6 @@
+"use strict";
 
 var Promise = require('bluebird');
-var async = require('asyncawait/async');
-var await = require('asyncawait/await');
 var env = require('node-env-file');
 env(__dirname + '/.env');
 
@@ -12,13 +11,18 @@ var sendRequest = require('./sendRequest.js');
 var config = require('./config.json');
 var taskLifetime = config.userQuotes.taskLifetime * 1000;
 
-var selfVerification = async.result (()=> {
-    var response = await(sendRequest(uri, tests[0].req));
+function selfVerification () {
+    return Promise.resolve(sendRequest(uri, tests[0].req))
+        .then((response)=> {
     if(response.error) {
         return false;
+    } else {
+        return compareResponse(response.body.response);
     }
-    return compareResponse(response.body.response);
-});
+    })
+    .catch(console.log.bind(console));
+
+}
 
 
 function compareResponse(body) {
