@@ -32,7 +32,7 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-var pingRout = async(function(req, res) {
+var pingRoute = async(function(req, res) {
     if (await(selfVerification())) {
         res.sendStatus(200);
     } else {
@@ -162,8 +162,8 @@ function isolatedTestRoute (req, res) {
         sendErrorResponse(id, res, 500, 'Internal server error');
     } else {
         logNew.info("Sending answer to " + id + ": ", response.data);
-        sendResponse(id, res, 200, 200, response.data);*/
-    }
+        sendResponse(id, res, 200, 200, response.data);
+    }*/
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig, log: logNew}, function (err, data) {
 
         logNew.info("...return from CoderunnerQueue to API-server. Task ID " + id);
