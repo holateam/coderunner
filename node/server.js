@@ -82,10 +82,10 @@ var saveOnServer = async ((data)=> {
     var response = await (sendRequest(uri, {"secret" : "someKey", "data": data}));
     if (response.error) {
         log.info("ERROR: " + response.error + ", could not send request: ", data);
-    } else if (response.body.code == 200) {
+    } else if (response.statusCode == 200) {
         console.log("request was sent successfully");
     } else {
-        log.info("WARNING: code: " + body.code + ", could not send request: ", data);
+        log.info("WARNING: code: " + response.statusCode + ", could not send request: ", data);
     }
 });
 
@@ -156,7 +156,7 @@ function isolatedTestRoute (req, res) {
 
     logNew.info(`...return from CoderunnerQueue to API-server. Task ID ${id}`);
 
-    response.codeRunnerVersion = config.version;
+    response.data.codeRunnerVersion = config.version;
 
     if (response.error) {
         sendErrorResponse(id, res, 500, 'Internal server error');

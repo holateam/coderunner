@@ -6,7 +6,6 @@ var await = require('asyncawait/await');
 
 
 var sendRequest = async.result (function(uri, body) {
-    console.log("into sendReques");
     var response = {};
     await (request(
         {
@@ -15,13 +14,11 @@ var sendRequest = async.result (function(uri, body) {
             json: body
         }
     ).then(function(incomingMsg){
-        console.log(incomingMsg.body);
         response.error = incomingMsg.error;
-        response.response = incomingMsg.response;
+        response.statusCode = incomingMsg.statusCode;
         response.body = incomingMsg.body;
     }).catch(function(e){
         response.error = e;
-
     }));
     return response;
 });

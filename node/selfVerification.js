@@ -13,7 +13,7 @@ var config = require('./config.json');
 var taskLifetime = config.userQuotes.taskLifetime * 1000;
 
 var selfVerification = async.result (()=> {
-    var response = await(sendRequest(uri_localhost, tests[0].req));
+    var response = await(sendRequest(uri, tests[0].req));
     if(response.error) {
         return false;
     }
