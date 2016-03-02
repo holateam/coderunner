@@ -1,61 +1,40 @@
-var request = require('request');
-var async = require('asyncawait/async');
-var await = require('asyncawait/await');
+'use strict';
+
+var Promise = require('bluebird');
+var request = Promise.promisify(require('request'));
 var tests = require('./tests_examples');
-var uri = "http://54.213.253.8:5555/isolated-test";
-
-
+var uri = "http://54.213.147.102:5555/isolated-test";
 var config = require('../node/config.json');
 var taskLifetime = config.userQuotes.taskLifetime * 1000;
 
-var testCounter = tests.length;
-
-
-var runTester = function () {
-    return function (cb) {
-        for (var i = 0; i < tests.length; i++) {
-            try {
-                sendRequest(i, cb);
-            } catch (e) {
-                console.log("catch: " + e);
-            }
-        }
-    }
-};
-
-var start = async(function  () {
-    console.log('========================================start process testing==================================================');
-    await(runTester());
+var requests = tests.map(function (req) {
+    return {method: 'POST', uri: uri, json: req.req};
 });
 
-start().then(function () {
-    console.log('============================================end process testing=================================================');
-});
+Promise.all( requests.map(sendRequest) )
+    .then((results)=> {
+        results.forEach((res, idx)=> {
+            var result = compareTests(res, idx);
+            printResult(result, idx);
+        });
+    })
+    .catch(console.log.bind(console));
 
 
+function sendRequest(data) {
 
-function sendRequest(i, cb) {
-    request(
-        {
-            method: 'POST',
-            uri: uri,
-            json: tests[i].req
-        },
-        function (error, response, body){
-            if (error) {
-                console.log();
-                console.log(error);
-                testCounterDecrement(cb);
-            } else {
-                compareTests(error, response, body, i, cb);
-            }
+    return  Promise.resolve(request(data)).then(function (incomingMsg) {
+        if (incomingMsg.error) {
+            throw new Error(incomingMsg.error);
+        } else {
+            return incomingMsg.body;
         }
-    );
+    });
+
 }
 
 
-
-var compareTests = function (error, response, body, i, cb) {
+var compareTests = function (body, i) {
 
     var log = [];
 
@@ -82,25 +61,16 @@ var compareTests = function (error, response, body, i, cb) {
     }
 
     var status = (log.length > 0) ? "fail" : "success";
-    var result = {test: status, "log": log};
+    return {test: status, "log": log};
 
-    printResult(result, i, cb);
 
 };
 
-function printResult(result, i, cb) {
+function printResult(result, i) {
     console.log('TEST: ', tests[i].desc);
     console.log("RESULT: ", result);
     console.log('______________________________________________________________________________________________________');
     console.log();
-    testCounterDecrement(cb);
-}
-
-function testCounterDecrement(cb) {
-    testCounter--;
-    if (testCounter == 0) {
-        cb();
-    }
 }
 
 
@@ -115,14 +85,14 @@ function logException (log, e, res, pattern) {
 function compareResponse200(log, body, i) {
     try {
         var stdout = tests[i].resBody.response.stdout;
-        body.response.stdout.forEach(function (res, idx) {
+        body.response.stdout.forEach((res, idx)=> {
             if (res !== stdout[idx]) {
                 addlog(log, idx, res, stdout[idx]);
             }
         });
 
         var stderr = tests[i].resBody.response.stderr;
-        body.response.stderr.forEach(function (res, idx) {
+        body.response.stderr.forEach((res, idx)=> {
             if ((res && !stderr[idx]) || (!res && stderr[idx])) {
                 addlog(log, idx, res, stderr[idx]);
             }
@@ -132,7 +102,7 @@ function compareResponse200(log, body, i) {
         compareResponseErrors(log, body, i, "compilerErrors");
 
         var timestamps = tests[i].resBody.response.timestamps;
-        body.response.timestamps.forEach(function (res, idx) {
+        body.response.timestamps.forEach((res, idx)=> {
             if (res > taskLifetime && (body.response.stderr[0].toLowerCase()).indexOf("time is out of running") == -1){
                 addlog(log, idx, res, timestamps[idx]);
             }
@@ -142,8 +112,6 @@ function compareResponse200(log, body, i) {
         logException(log, e, body.response, tests[i].resBody);
     }
 }
-
-
 
 function compareResponseErrors(log, body, i, field) {
     if ((tests[i].resBody.response[field] && !body.response[field]) ||
