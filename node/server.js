@@ -14,6 +14,8 @@ var queue = new Queue();
 var uri = "http://nonscire.pp.ua/request-logger/logme.php";
 var sendRequest = require('./sendRequest.js');
 var selfVerification = require('./selfVerification');
+var async = require('asyncawait/async');
+var await = require('asyncawait/await');
 
 
 
@@ -156,18 +158,31 @@ function isolatedTestRoute (req, res) {
 
     logNew.info(`Pushing request ${id} to the CoderunnerQueue`);
 
-    /*let response = queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig, log: logNew});
+    var incomingTaskObj = {
+        sessionId: id,
+        code: code,
+        language: lang,
+        testCases: testCases,
+        config: optionalConfig,
+        log: logNew
+    };
 
-    logNew.info(`...return from CoderunnerQueue to API-server. Task ID ${id}`);
+    var solveTaskAsync = async(function (taskObj) {
+        var response = await(queue.pushAsync(taskObj));
+        logNew.info(`...return from CoderunnerQueue to API-server. Task ID ${id}`);
+        response.codeRunnerVersion = config.version;
 
-    response.data.codeRunnerVersion = config.version;
+        if (response.error) {
+            sendErrorResponse(id, res, 500, 'Internal server error');
+        } else {
+            logNew.info("Sending answer to " + id + ": ", response);
+            sendResponse(id, res, 200, 200, response);
+        }
+    });
 
-    if (response.error) {
-        sendErrorResponse(id, res, 500, 'Internal server error');
-    } else {
-        logNew.info("Sending answer to " + id + ": ", response.data);
-        sendResponse(id, res, 200, 200, response.data);
-    }*/
+    solveTaskAsync(incomingTaskObj);
+
+    /*
     queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig, log: logNew}, function (err, data) {
 
         logNew.info("...return from CoderunnerQueue to API-server. Task ID " + id);
@@ -181,6 +196,7 @@ function isolatedTestRoute (req, res) {
             sendResponse(id, res, 200, 200, data);
         }
     });
+     */
 }
 
 function validateKey(key) {
