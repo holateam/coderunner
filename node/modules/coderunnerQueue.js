@@ -37,7 +37,7 @@ class RunnerQueue {
     sendTaskToDockerRunner(taskObj, callbackFunction) {
         var self = this;
         this.workingTasksCounter++;
-        var asCode = async((task) = > {
+        var asCode = async((task) => {
             var dockerRunner = new DockerRunner();
             var dockerRunnerAsync = Promise.promisifyAll(dockerRunner);
             var result = await(dockerRunnerAsync.runAsync(task));
@@ -57,18 +57,12 @@ class RunnerQueue {
         });
 
         asCode(taskObj)
-            .then((res) = > {
-            callbackFunction(null, res
-    )
-        ;
-    })
-    .
-        catch((err) = > {
-            callbackFunction(err, null
-    )
-        ;
-    })
-        ;
+        .then((res) => {
+            callbackFunction(null, res);
+        })
+        .catch((err) => {
+            callbackFunction(err, null);
+        });
     }
 }
 
