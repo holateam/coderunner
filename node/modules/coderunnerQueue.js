@@ -37,8 +37,7 @@ class RunnerQueue {
     sendTaskToDockerRunner(taskObj, callbackFunction) {
         var self = this;
         this.workingTasksCounter++;
-
-        var asCode = async(function (task) {
+        var asCode = async((task) = > {
             var dockerRunner = new DockerRunner();
             var dockerRunnerAsync = Promise.promisifyAll(dockerRunner);
             var result = await(dockerRunnerAsync.runAsync(task));
@@ -58,12 +57,18 @@ class RunnerQueue {
         });
 
         asCode(taskObj)
-            .then(function (res) {
-                callbackFunction(null, res);
-            })
-            .catch(function (err) {
-                callbackFunction(err, null);
-            });
+            .then((res) = > {
+            callbackFunction(null, res
+    )
+        ;
+    })
+    .
+        catch((err) = > {
+            callbackFunction(err, null
+    )
+        ;
+    })
+        ;
     }
 }
 
@@ -98,93 +103,93 @@ module.exports = RunnerQueue;
 //RunnerQueue.prototype.sendTaskToDockerRunner = function (taskObj, callbackFunction) {
 //    var self = this;
 
-    /*
-    var returnFunc = function (err, result) {
-        var sessionId=result.sessionId, answerObj=result.response;
+/*
+ var returnFunc = function (err, result) {
+ var sessionId=result.sessionId, answerObj=result.response;
 
-        taskObj.log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
+ taskObj.log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
 
-        self.workingTasksCounter--;
+ self.workingTasksCounter--;
 
-        if ((self.workingTasksCounter < self.maxWorkingTaskNumber) && (self.arrPendingTasks.length > 0)) {
-            var taskToSolve = self.arrPendingTasks.shift ();
-            self.sendTaskToDockerRunner (taskToSolve.task, taskToSolve.cb);
-        }
+ if ((self.workingTasksCounter < self.maxWorkingTaskNumber) && (self.arrPendingTasks.length > 0)) {
+ var taskToSolve = self.arrPendingTasks.shift ();
+ self.sendTaskToDockerRunner (taskToSolve.task, taskToSolve.cb);
+ }
 
-        taskObj.log.info("Sending answer " + sessionId + " to API-server");
-        callbackFunction (err, answerObj);
-    };
+ taskObj.log.info("Sending answer " + sessionId + " to API-server");
+ callbackFunction (err, answerObj);
+ };
 
-    taskObj.log.info("Sending task to DockerRunner", taskObj);
+ taskObj.log.info("Sending task to DockerRunner", taskObj);
 
-    var dockerRunner = new DockerRunner();
-    dockerRunner.run(taskObj, returnFunc);
-     this.workingTasksCounter++;
-     */
+ var dockerRunner = new DockerRunner();
+ dockerRunner.run(taskObj, returnFunc);
+ this.workingTasksCounter++;
+ */
 
 // asyncawait
 /*
-    this.workingTasksCounter++;
+ this.workingTasksCounter++;
 
-    var asCode = async(function (task) {
-        var dockerRunner = new DockerRunner();
-        var dockerRunnerAsync = Promise.promisifyAll(dockerRunner);
+ var asCode = async(function (task) {
+ var dockerRunner = new DockerRunner();
+ var dockerRunnerAsync = Promise.promisifyAll(dockerRunner);
 
-        var result = await(dockerRunnerAsync.runAsync(task));
+ var result = await(dockerRunnerAsync.runAsync(task));
 
-        var sessionId = result.sessionId;
-        var answerObj = result.response;
+ var sessionId = result.sessionId;
+ var answerObj = result.response;
 
-        task.log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
+ task.log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
 
-        self.workingTasksCounter--;
+ self.workingTasksCounter--;
 
-        if ((self.workingTasksCounter < self.maxWorkingTaskNumber) && (self.arrPendingTasks.length > 0)) {
-            var taskToSolve = self.arrPendingTasks.shift();
-            self.sendTaskToDockerRunner(taskToSolve.task, taskToSolve.cb);
-        }
+ if ((self.workingTasksCounter < self.maxWorkingTaskNumber) && (self.arrPendingTasks.length > 0)) {
+ var taskToSolve = self.arrPendingTasks.shift();
+ self.sendTaskToDockerRunner(taskToSolve.task, taskToSolve.cb);
+ }
 
-        task.log.info("Sending answer " + sessionId + " to API-server");
-        return answerObj;
-    });
+ task.log.info("Sending answer " + sessionId + " to API-server");
+ return answerObj;
+ });
 
-    asCode(taskObj)
-        .then(function (res) {
-            callbackFunction(null, res);
-        })
-        .catch(function (err) {
-            callbackFunction(err, null);
-        });
+ asCode(taskObj)
+ .then(function (res) {
+ callbackFunction(null, res);
+ })
+ .catch(function (err) {
+ callbackFunction(err, null);
+ });
  */
 
 // promises
-    /*
-     this.workingTasksCounter++;
+/*
+ this.workingTasksCounter++;
 
-     var dockerRunner = new DockerRunner();
-     var dockerRunnerAsync=Promise.promisifyAll(dockerRunner);
-     dockerRunnerAsync.runAsync(taskObj)
-     .then(function(result){
-     var sessionId=result.sessionId;
-     var answerObj=result.response;
+ var dockerRunner = new DockerRunner();
+ var dockerRunnerAsync=Promise.promisifyAll(dockerRunner);
+ dockerRunnerAsync.runAsync(taskObj)
+ .then(function(result){
+ var sessionId=result.sessionId;
+ var answerObj=result.response;
 
-     taskObj.log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
+ taskObj.log.info("...task solution " + sessionId + " received from docker-manager to coderunnerQueue");
 
-     self.workingTasksCounter--;
+ self.workingTasksCounter--;
 
-     if ((self.workingTasksCounter < self.maxWorkingTaskNumber) && (self.arrPendingTasks.length > 0)) {
-     var taskToSolve = self.arrPendingTasks.shift ();
-     self.sendTaskToDockerRunner (taskToSolve.task, taskToSolve.cb);
-     }
+ if ((self.workingTasksCounter < self.maxWorkingTaskNumber) && (self.arrPendingTasks.length > 0)) {
+ var taskToSolve = self.arrPendingTasks.shift ();
+ self.sendTaskToDockerRunner (taskToSolve.task, taskToSolve.cb);
+ }
 
-     taskObj.log.info("Sending answer " + sessionId + " to API-server");
-     return answerObj;
-     })
-     .then (function(result){
-     callbackFunction(null, result);
-     })
-     .catch  (function(err){
-     callbackFunction(err, null);
-     })
-     */
+ taskObj.log.info("Sending answer " + sessionId + " to API-server");
+ return answerObj;
+ })
+ .then (function(result){
+ callbackFunction(null, result);
+ })
+ .catch  (function(err){
+ callbackFunction(err, null);
+ })
+ */
 //};
