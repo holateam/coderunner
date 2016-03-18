@@ -113,12 +113,20 @@ then
 fi
 
 info 'Looking for available docker language compilers'
+ARCH=$(dpkg --print-architecture)
 for FILE in `find ${PROJECT_HOME}/docker/* -type d`
 do
   lang=$(basename ${FILE})
   info "Found language: $lang. Creating docker container"
   cd ${FILE}
-  sudo docker build -t ${lang}_img .
+  if [ $ARCH = 'armhf' ]
+  then
+    echo arm server image configuration used
+    sudo docker build -f Dockerfile.arm -t ${lang}_img .
+  else
+    echo usual image configuration used
+    sudo docker build -t ${lang}_img .
+  fi
 done
 
 info 'Installing node.js npm modules and dependencies'

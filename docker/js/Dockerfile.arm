@@ -1,0 +1,4 @@
+FROM armv7/armhf-ubuntu
+COPY start /usr/bin
+COPY startcompile /usr/bin
+RUN apt-get update -y; curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash - ; apt-get install -y nodejs; ln -s `which nodejs` /usr/bin/node ; apt-get clean all

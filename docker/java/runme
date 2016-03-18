@@ -1,1 +1,8 @@
-sudo docker build -t java_img .
+if [ $(dpkg --print-architecture) = 'armhf' ]
+then
+    echo arm server configuration
+    sudo docker build -f Dockerfile.arm -t java_img .
+else
+    echo usual configuration
+    sudo docker build -t java_img .
+fi

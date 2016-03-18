@@ -1,1 +1,8 @@
-sudo docker build -t js_img .
+if [ $(dpkg --print-architecture) = 'armhf' ]
+then
+    echo arm server configuration
+    sudo docker build -f Dockerfile.arm -t js_img .
+else
+    echo usual configuration
+    sudo docker build -t js_img .
+fi
