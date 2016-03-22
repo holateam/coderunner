@@ -1,0 +1,8 @@
+{
+  "name": "tester",
+  "version": "0.0.1",
+  "dependencies": {
+    "bluebird": "^3.3.3",
+    "request": "^2.69.0"
+  }
+}
