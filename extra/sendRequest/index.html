@@ -211,7 +211,7 @@ public class test {
     var responseField = document.getElementById('response');
     submit.addEventListener('click', function(e) {
         e.preventDefault();
-        var request = {"userName": "any name", "serverSecret": "key"};
+        var request = {"userName": "username"};
         request.language = document.getElementById('lang').value;
         var code = document.getElementById('code').value;
         request.code = code.replace(/\\n/g,'\n');

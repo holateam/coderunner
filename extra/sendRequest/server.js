@@ -2,6 +2,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var request = require('request');
 var uri = "http://163.172.128.212:5555/isolated-test";
+var config = require('../../node/config.json');
+
 
 var app = express();
 app.use(express.static(__dirname));
@@ -22,7 +24,7 @@ function sendErrorResponse (res, status, code, message) {
 }
 
 function  routeRequest(req, res) {
-    console.log("request: ", req.body);
+    req.body.serverSecret = config.serverSecret;
     request(
         {
             method: 'POST',
@@ -42,4 +44,5 @@ function  routeRequest(req, res) {
 }
 
 var server = app.listen(8423, function () {
-    });
+    console.log('Running on http://54.213.147.102:' + 8423);
+});
