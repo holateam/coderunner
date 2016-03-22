@@ -182,21 +182,6 @@ function isolatedTestRoute (req, res) {
 
     solveTaskAsync(incomingTaskObj);
 
-    /*
-    queue.push({sessionId: id, code: code, language: lang, testCases: testCases, config: optionalConfig, log: logNew}, function (err, data) {
-
-        logNew.info("...return from CoderunnerQueue to API-server. Task ID " + id);
-
-        data.codeRunnerVersion = config.version;
-
-        if (err) {
-            sendErrorResponse(id, res, 500, 'Internal server error');
-        } else {
-            logNew.info("Sending answer to " + id + ": ", data);
-            sendResponse(id, res, 200, 200, data);
-        }
-    });
-     */
 }
 
 function validateKey(key) {
