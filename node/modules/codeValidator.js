@@ -25,7 +25,12 @@ function phpValidator(sourcecode, log) {
 }
 
 function nodeValidator(sourcecode, log) {
-    return sendResult(""); //stub(sourcecode.language);
+    var code=sourcecode.code.replace(new RegExp(" ",'g'), "").replace(new RegExp("\n",'g'), "").toLowerCase();
+    if  (code.indexOf(config.quotes.includes.forbiddenInJS) > -1) {
+        addLog(log, 2, config.quotes.includes.forbiddenInJS, "Not allowed to use");
+        return sendResult(log);
+    }
+    return sendResult("");
 }
 
 function pythonValidator(sourcecode, log) {
