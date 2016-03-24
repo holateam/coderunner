@@ -39,7 +39,8 @@
         "importjava.lang.String": true,
         "importjava.io.IOException": true,
         "importjava.util.Scanner": true
-      }
+      },
+      "forbiddenInJS": "=require("
     },
     "alarmObservers": [
       "mail@example.com",
