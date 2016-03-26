@@ -36,7 +36,9 @@ TestCasesRunner.prototype.runNextCase = function () {
     }
 
     var testCase = this.arrTestCases[this.currentTestCase];
-
+    if (testCase.length==0) {
+        testCase = "*";
+    }
     // saving execution start time
     this.lastCaseStart = (new Date()).getTime();
 
