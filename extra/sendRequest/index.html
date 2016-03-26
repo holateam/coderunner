@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="./vendor/codemirror/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="./vendor/codemirror/theme/material-dark.css">
+    <script src="vendor/codemirror/codemirror.js"></script>
+    <script src="vendor/codemirror/mode/javascript.js"></script>
+    <script src="vendor/codemirror/mode/clike.js"></script>
+    <script src="vendor/codemirror/keymap/sublime.js"></script>
     <title>Coderunner</title>
     <style>
         @font-face {
@@ -36,6 +43,7 @@
             min-height: 3em;
         }
         .header-page{
+            justify-content: space-between;
             width: 87%;
             margin: 0 auto;
         }
@@ -63,10 +71,10 @@
 
         }
         .h1 {
-            text-align: center;
-            padding: 10px 0;
-            font-size: 2.5em;
+            font-size: 2.2em;
             font-weight: bold;
+            display: inline-block;
+
         }
         .load {
             background-image: url("img/loading.gif");
@@ -124,7 +132,6 @@
             font-family: "Courier New", sans-serif;
             width: 100%;
             display: block;
-            padding: .7em 1em;
             background-color: rgb(225, 225, 225);
             border-width: 0;
             box-sizing: border-box;
@@ -177,7 +184,7 @@
 
         .main {
             width: 90%;
-            margin: 0 auto;
+            margin: 2em auto;
         }
         #lang {
             width: 200%;
@@ -191,6 +198,7 @@
         .bottom {
             justify-content: space-between;
             align-items: flex-end;
+            margin-top: 0.3em;
         }
         .std {
             margin-top: 1em;
@@ -204,7 +212,10 @@
 </head>
 <body>
 <header>
-    <div class="header-page  clearfix">
+
+    <div class="header-page  flexible">
+        <div class="h1">Coderunner request sender</div>
+
         <nav class="menu">
             <ul>
                 <li><a href="https://github.com/holateam/coderunner/blob/master/README.md">About</a></li>
@@ -215,7 +226,6 @@
     </div>
 </header>
 <div class="main">
-    <div class="h1">Coderunner  send request</div>
     <div class="field flexible">
         <div class="left">
 
@@ -289,26 +299,53 @@ For example:
     </div>
 </footer>
 <script type="text/javascript">
-    var submit = document.getElementById('submit');
-    var responseField = document.getElementById('response');
-    submit.addEventListener('click', function(e) {
-        responseField.innerHTML = '';
-        responseField.className = "load";
+    var modes = {
+        'cpp' : 'text/x-c++src',
+        'java': 'text/x-java',
+        'js'  : 'text/javascript'
+    };
+    var $submit = document.getElementById('submit');
+    var $responseField = document.getElementById('response');
+    var $language = document.getElementById('lang');
+    var $code = document.getElementById('code');
+    var $stdin = document.getElementById('test-cases');
+    var editor = CodeMirror.fromTextArea($code, {
+        lineNumbers : true,
+        lineWrapping: true,
+        theme       : "material-dark",
+        mode        : "text/x-c++src",
+        keyMap      : "sublime",
+        indentUnit  : 4
+    });
+
+    $language.onchange = function(){
+        console.log("new lang", $language.value);
+        editor.setOption("mode", modes[$language.value]);
+    };
+
+    $submit.addEventListener('click', function(e) {
+        $responseField.innerHTML = '';
+        $responseField.className = "load";
         e.preventDefault();
         var request = {"userName": "username"};
-        request.language = document.getElementById('lang').value;
-        var code = document.getElementById('code').value;
+        request.language = $language.value;
+        var code = editor.getValue('\\n');
+        console.log("CODE: ", code);
+        console.log("STDIN: ", $stdin.value);
         request.code = code.replace(/\\n/g,'\n');
-        var stdin = document.getElementById('test-cases').value;
-        stdin = stdin.replace(/\n/g,'\x0D');
+        var stdin = $stdin.value;
+        stdin = stdin.replace(/\n/g,'\\n');
+        console.log("TEST_CASE: ", stdin);
         request.testCases = [stdin];
+        console.log("REQUEST TEST_CASE: ", request.testCases);
+
         xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function(){
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                responseField.className = responseField.className.replace("load", "");
+                $responseField.className = $responseField.className.replace("load", "");
 
                 var res_json = JSON.parse(xmlhttp.responseText);
-                responseField.innerHTML = JSON.stringify(res_json, null, '    ');
+                $responseField.innerHTML = JSON.stringify(res_json, null, '    ');
             }
         };
         xmlhttp.open("POST", '/request', true);
