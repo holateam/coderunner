@@ -9,7 +9,7 @@ function validate(testCases) {
         return sendResult(logs);
     }
 
-    var regExp = /[\x00-\x0A\x0C\x0E-\x1F\x7F-\xFF]/; // pattern for ascii symbols (0-10, 12, 14-31, 127-255)
+    var regExp = /[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\xFF]/; // pattern for ascii symbols (0-8, 11-12, 14-31, 127-255)
     //restricts length and use of special symbols in every test case
     for (var i = 0; i < testCases.length; i++) {
         //convert test case from UTF-8 to ASCII
