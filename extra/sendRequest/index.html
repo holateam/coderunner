@@ -3,14 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="./vendor/codemirror/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="./vendor/codemirror/theme/material-dark.css">
+    <script src="vendor/codemirror/codemirror.js"></script>
+    <script src="vendor/codemirror/mode/javascript.js"></script>
+    <script src="vendor/codemirror/mode/clike.js"></script>
+    <script src="vendor/codemirror/keymap/sublime.js"></script>
     <title>Coderunner</title>
     <style>
+        @font-face {
+            font-family: 'Lato';
+            src: local('Lato'), local('Lato-Black'), url('./fonts/lato/lato-black.woff') format('woff'), url('./fonts/lato/lato-black.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        .flexible {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         body {
             overflow: hidden;
             color: #dedede;
             margin: 0;
             padding: 0;
-            font-family: sans-serif;
+            font-family: 'Lato', sans-serif;
         }
         .clearfix::after {
             content: '';
@@ -20,14 +39,17 @@
         header {
             background: #34495e;
             word-spacing: 5px;
+            height: 60px;
+            min-height: 3em;
         }
         .header-page{
-            width: 960px;
+            justify-content: space-between;
+            width: 87%;
             margin: 0 auto;
         }
         .menu {
             float: right;
-            margin: 10px 0;
+            margin: 5px 0;
             position: relative;
         }
         .menu ul {
@@ -44,38 +66,48 @@
             text-decoration: none;
             text-transform: uppercase;
             color: #dedede;
-            font-size:1.2em;
+            font-size:1.1em;
+            transition: all 0.2s ease-in-out;
+
         }
         .h1 {
-            text-align: center;
-            padding-top: 30px;
-            font-size: 3em;
+            font-size: 2.2em;
             font-weight: bold;
+            display: inline-block;
+
+        }
+        .load {
+            background-image: url("img/loading.gif");
+            background-size: 8% 10%;
+            background-repeat: no-repeat;
+            background-position: center;
+
         }
         footer {
             background: #34495e;
             width: 100%;
             position: absolute;
             bottom: 0;
+            height: 60px;
+            min-height: 2em;
         }
         .footer-page {
-            width: 960px;
+            width: 88%;
             margin: 0 auto;
         }
         .footer-page .year {
             padding: 20px 0;
-            font-size: 12px;
+            font-size: 1em;
         }
         footer section {
             display: inline-block;
-            padding: 10px 0 0 0;
         }
         .contacts {
             float: right;
         }
         .shpp {
-            font-family: Arial, sans-serif;;
-            font-size: 1.5em;
+            font-family: Arial, sans-serif;
+            font-size: 1.5rem;
             font-weight: bold;
             margin-top: 10px;
         }
@@ -83,118 +115,182 @@
             color: black;
         }
         .plus {
+            float: right;
+            margin-left: .1em;
             color: #27ae60;
         }
         .site {
+            font-family: 'Lato', sans-serif;
             font-size: 16px;
             padding-left: 20px;
             text-transform: none;
             font-weight: normal;
         }
-        form {
-            width: 70em;
-        }
+
         form .col > * , #response {
             margin-top: 1em;
+            font-family: "Courier New", sans-serif;
             width: 100%;
             display: block;
-            padding: .7em 1em;
             background-color: rgb(225, 225, 225);
             border-width: 0;
+            box-sizing: border-box;
         }
         .center {
-            margin: 1em auto;
+            margin: 0 auto;
         }
-        #submit, #reset {
+        #submit {
+            font-family: 'Lato', sans-serif;
             font-size: 1em;
             padding: .7em 2em;
             display: inline-block;
             width: 10em;
             background: linear-gradient(#3A78A1 0%, #2c3e50 100%);
             border-radius: 5px;
-            color: #eeedf5;
+            color: #dedede;
+            float: right;
+            transition: all 0.25s ease-in-out;
         }
-        #submit:hover, #reset:hover {
-            cursor: pointer;
-            color: white;
-        }
+
         #code {
             resize: none;
-            height: 8em
+            height:23em;
         }
         #response {
             width: 100%;
+            resize: none;
+            height: 38em;
+
         }
         #btns {
-            width: 21em;
+            background: none;
+            padding: 0;
+            margin: 1em 0 0 0;
         }
         .col {
-            width: 30em;
-            margin: 0 2em;
-            float: left;
+            width: 95%;
+        }
+
+        .left {
+            width: 100%;
+        }
+
+        .right {
+            width: 100%;
+        }
+        .field {
+            align-items: flex-start;
+        }
+
+        .main {
+            width: 90%;
+            margin: 2em auto;
+        }
+        #lang {
+            width: 200%;
+            border: 1px solid rgb(225, 225, 225);
+            height: 3.3em;
+        }
+        #test-cases {
+            height: 7em;
+            resize: none;
+        }
+        .bottom {
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 0.3em;
+        }
+        .std {
+            margin-top: 1em;
+        }
+        a:hover, #submit:hover {
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s ease-in-out;
         }
     </style>
 </head>
 <body>
 <header>
-    <div class="header-page  clearfix">
+
+    <div class="header-page  flexible">
+        <div class="h1">Coderunner request sender</div>
+
         <nav class="menu">
             <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#to_request">Request Example</a></li>
-                <li><a href="#language_list">Supported Languages</a></li>
+                <li><a href="https://github.com/holateam/coderunner/blob/master/README.md">About</a></li>
+                <li><a href="https://github.com/holateam/coderunner/blob/master/requestSamples.md">Request Example</a></li>
+                <li><a href="https://github.com/holateam/coderunner/blob/master/outputObject.md">Response Example</a></li>
             </ul>
         </nav>
     </div>
 </header>
+<div class="main">
+    <div class="field flexible">
+        <div class="left">
 
-<div class="h1">Coderunner  send request</div>
-<form class="center">
-    <div class="center clearfix">
-        <div class="col">
-            code:
-          <textarea type="text" id="code" placeholder="Enter some code here... Something like:
-
+        <form>
+            <div class="center clearfix">
+                <div class="col">
+                    code:
+                  <textarea type="text" id="code" placeholder="Enter some code here..." >
 import java.util.Scanner;
 public class test {
-  public static void main(String[] args) {
-    Scanner in = new Scanner(System.in);
-    int a = in.nextInt();
-    int b = in.nextInt();
-    System.out.print(a+b);
-  }
-}"></textarea>
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int a = in.nextInt();
+        int b = in.nextInt();
+        System.out.print(a+b);
+    }
+}
+                  </textarea>
+                </div>
+                <div class="col std">
+                    stdin: <textarea type="text" id="test-cases" placeholder="Enter required values separated with a white space.
+For example:
+2 3"></textarea>
+                </div>
+                <div class="col bottom flexible">
+                    <select name="language" id="lang">
+                        <option value="cpp">C++</option>
+                        <option value="java">Java</option>
+                        <option value="js">Javascript</option>
+                    </select>
+                    <div id="btns" class="submit">
+                        <input type="submit" value="Submit" id="submit">
+                    </div>
+                </div>
+
+            </div>
+        </form>
         </div>
-        <div class="col">
-            test-cases: <input type="text" id="tc_1" placeholder="required values separated with a space">
-            <input type="text" id="tc_2" placeholder="required values separated with a space">
-            <input type="text" id="lang" placeholder="Enter a language">
+        <div class="right">
+            <div class="response flexible">
+            <div class="col">
+                response: <textarea id="response" name="res"  readonly></textarea>
+            </div>
+            </div>
         </div>
     </div>
-
-    <div id="btns" class="center">
-        <input type="submit" value="Submit" id="submit">
-        <input type="reset" value="Reset" id="reset">
-    </div>
-
-</form>
-<textarea id="response" name="res" rows="20" readonly></textarea>
-
+</div>
 <footer>
     <div class="footer-page">
         <section class="info">
             <div class="block-info">
-                <div class="email">shpp_coderunner@gmail.com</div>
                 <div class="year">© 2016 shpp-holateam</div>
             </div>
         </section>
         <section class="contacts">
             <div class="block-contact">
                 <div class="shpp">
-                    <a href="http://programming.kr.ua/ru">
+                    <a href="http://programming.kr.ua/ru" class="flexible">
+                        <div>
                         <span class="sh">ш</span>
                         <span class="plus">++</span>
-                        <span class="site">http://programming.kr.ua/</span>
+                        </div>
+                        <div class="flexible">
+                            <span class="site">http://programming.kr.ua</span>
+                        </div>
                     </a>
                 </div>
             </div>
@@ -203,27 +299,53 @@ public class test {
     </div>
 </footer>
 <script type="text/javascript">
-    var width = document.documentElement.clientWidth;
-    var submit = document.getElementById('submit');
-    var submit_width = submit.offsetWidth;
-    var w = width/2 - submit_width + "px";
-    // submit.style.marginLeft = w;
-    var responseField = document.getElementById('response');
-    submit.addEventListener('click', function(e) {
+    var modes = {
+        'cpp' : 'text/x-c++src',
+        'java': 'text/x-java',
+        'js'  : 'text/javascript'
+    };
+    var $submit = document.getElementById('submit');
+    var $responseField = document.getElementById('response');
+    var $language = document.getElementById('lang');
+    var $code = document.getElementById('code');
+    var $stdin = document.getElementById('test-cases');
+    var editor = CodeMirror.fromTextArea($code, {
+        lineNumbers : true,
+        lineWrapping: true,
+        theme       : "material-dark",
+        mode        : "text/x-c++src",
+        keyMap      : "sublime",
+        indentUnit  : 4
+    });
+
+    $language.onchange = function(){
+        console.log("new lang", $language.value);
+        editor.setOption("mode", modes[$language.value]);
+    };
+
+    $submit.addEventListener('click', function(e) {
+        $responseField.innerHTML = '';
+        $responseField.className = "load";
         e.preventDefault();
         var request = {"userName": "username"};
-        request.language = document.getElementById('lang').value;
-        var code = document.getElementById('code').value;
+        request.language = $language.value;
+        var code = editor.getValue('\\n');
+        console.log("CODE: ", code);
+        console.log("STDIN: ", $stdin.value);
         request.code = code.replace(/\\n/g,'\n');
-        var test_cases = [];
-        test_cases.push(document.getElementById('tc_1').value);
-        test_cases.push(document.getElementById('tc_2').value);
-        request.testCases = test_cases;
+        var stdin = $stdin.value;
+        stdin = stdin.replace(/\n/g,'\\n');
+        console.log("TEST_CASE: ", stdin);
+        request.testCases = [stdin];
+        console.log("REQUEST TEST_CASE: ", request.testCases);
+
         xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function(){
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                $responseField.className = $responseField.className.replace("load", "");
+
                 var res_json = JSON.parse(xmlhttp.responseText);
-                responseField.innerHTML = JSON.stringify(res_json);
+                $responseField.innerHTML = JSON.stringify(res_json, null, '    ');
             }
         };
         xmlhttp.open("POST", '/request', true);
@@ -233,3 +355,4 @@ public class test {
 </script>
 </body>
 </html>
+

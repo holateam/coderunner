@@ -34,7 +34,7 @@ DockerRunner.prototype.run = function (options, cb) {
         sessionId: options.sessionId || null,
         code: options.code || null,
         language: options.language || null,
-        testCases: options.testCases || null,
+        testCases: options.testCases || ["*"],
         callback: cb || null
     };
 
