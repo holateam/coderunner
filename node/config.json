@@ -20,25 +20,27 @@
     "dockerMaxMemory": 512
   },
   "quotes": {
-    "maxTestCases": 2,
+    "maxTestCases": 5,
     "maxTestCasesLength": 100,
     "tasksPerMinute": 10,
     "patience": 5,
     "rageCoefficient": 1.5,
-    "codeLength": 1500,
+    "codeLength": 3000,
     "dockerMinMemory": 128,
     "includes": {
       "acceptedCpp": {
         "#include<iostream>": true,
         "#include<stdlib.h>": true,
         "#include<string>": true,
-        "#include<vector>": true
+        "#include<vector>": true,
+        "#include<cmath>": true
       },
       "acceptedJava": {
         "importjava.io.BufferedReader": true,
         "importjava.lang.String": true,
         "importjava.io.IOException": true,
-        "importjava.util.Scanner": true
+        "importjava.util.Scanner": true,
+        "importjava.lang.Math": true
       },
       "forbiddenInJS": "=require("
     },

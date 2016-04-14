@@ -1,6 +1,6 @@
 
 var tests = [];
-var key = "key";
+var key = require('./config.json').serverSecret;
 
 test = {desc: "simple adding java",
     lang: "java",
